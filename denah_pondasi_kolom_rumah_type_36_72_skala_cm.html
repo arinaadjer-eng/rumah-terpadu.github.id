@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Denah Rencana Pondasi, Sloof & Kolom - Type 36/72 (cm)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FFFFFF; color: #111827; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #F8FAFC; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-[#FFFFFF] text-[#111827] h-full flex flex-col overflow-hidden select-none">
+
+    <!-- Header & Top Legend Bar -->
+    <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 z-30 shadow-2xs">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">Denah Rencana Pondasi, Sloof & Kolom — Type 36/72</h1>
+                <p class="text-[11px] text-slate-500">Kavling 600 × 1200 cm • Skala Kartesius Presisi (cm)</p>
+            </div>
+        </div>
+
+        <!-- Legenda Komponen Struktur -->
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px]">
+            <div class="flex items-center space-x-1.5">
+                <span class="w-3.5 h-3.5 rounded-xs bg-blue-500/25 border-2 border-blue-600 inline-block"></span>
+                <span class="font-medium text-slate-700">Tapak 50×50 cm (8 Titik)</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+                <span class="w-4 h-2.5 bg-amber-500/20 border-y border-amber-600 inline-block"></span>
+                <span class="font-medium text-slate-700">Pondasi Menerus & Sloof 15×20</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+                <span class="w-3 h-3 bg-rose-600 border border-rose-800 inline-block"></span>
+                <span class="font-medium text-slate-700">Kolom Utama 15×15</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+                <span class="w-3 h-3 bg-emerald-600 border border-emerald-800 inline-block"></span>
+                <span class="font-medium text-slate-700">Kolom Praktis 15×15</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+                <span class="w-4 h-0 border-t-2 border-dashed border-slate-500 inline-block"></span>
+                <span class="font-medium text-slate-700">Batas Kavling</span>
+            </div>
+        </div>
+
+        <!-- Single Reset View Button -->
+        <button id="reset-btn" class="bg-slate-900 hover:bg-slate-800 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Reset View</span>
+        </button>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex relative overflow-hidden">
+        
+        <!-- Interactive Cartesian Canvas Wrapper -->
+        <div id="canvas-container" class="flex-1 relative bg-[#FFFFFF] overflow-hidden cursor-grab active:cursor-grabbing">
+            
+            <!-- Main Drawing Canvas -->
+            <canvas id="diagram-canvas" class="absolute inset-0 w-full h-full"></canvas>
+
+            <!-- Pinned Left Ruler (Sumbu Y - Panjang Lahan) -->
+            <div class="absolute top-0 bottom-9 left-0 w-14 bg-white/95 border-r border-slate-300 z-20 pointer-events-none shadow-2xs">
+                <canvas id="ruler-y-canvas" class="w-full h-full"></canvas>
+                <div class="absolute top-1/2 left-1.5 -translate-y-1/2 -rotate-90 origin-center text-[10px] font-bold text-slate-500 tracking-wider uppercase whitespace-nowrap pointer-events-none">
+                    Panjang Lahan / Y (cm)
+                </div>
+            </div>
+
+            <!-- Pinned Bottom Ruler (Sumbu X - Lebar Kavling) -->
+            <div class="absolute bottom-0 left-14 right-0 h-9 bg-white/95 border-t border-slate-300 z-20 pointer-events-none shadow-2xs">
+                <canvas id="ruler-x-canvas" class="w-full h-full"></canvas>
+                <div class="absolute bottom-0.5 right-3 text-[10px] font-bold text-slate-500 tracking-wider uppercase pointer-events-none">
+                    Lebar Kavling / X (cm)
+                </div>
+            </div>
+
+            <!-- Bottom-Left Ruler Corner Origin Box -->
+            <div class="absolute bottom-0 left-0 w-14 h-9 bg-slate-100 border-t border-r border-slate-300 z-30 flex items-center justify-center text-[10px] font-mono font-bold text-slate-600">
+                0,0 cm
+            </div>
+
+            <!-- Top-Left Live Status & Grid Scale Pill -->
+            <div class="absolute top-3 left-16 bg-white/95 backdrop-blur-xs border border-slate-200 px-3 py-1.5 rounded-lg text-[11px] text-slate-700 z-20 pointer-events-none flex items-center space-x-3 shadow-xs">
+                <div>Grid Adaptif: <span id="grid-badge" class="font-mono font-bold text-blue-600">50 cm</span></div>
+                <div class="text-slate-300">|</div>
+                <div>Kursor: <span id="cursor-coords" class="font-mono font-semibold text-slate-900">X: 0 cm, Y: 0 cm</span></div>
+            </div>
+
+            <!-- Cursor Follow Tooltip -->
+            <div id="hover-tooltip" class="absolute hidden pointer-events-none bg-white border border-slate-300 text-slate-900 px-3 py-2 rounded-lg text-xs shadow-lg z-40 max-w-xs">
+                <div class="font-bold text-blue-700" id="tip-name">-</div>
+                <div class="text-slate-600 text-[11px] mt-0.5" id="tip-material">-</div>
+                <div class="text-emerald-700 font-mono font-semibold text-[11px] mt-1" id="tip-size">-</div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar: Component Detail Inspector -->
+        <aside class="w-80 lg:w-96 bg-slate-50/70 border-l border-slate-200 flex flex-col z-30">
+            <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h2 class="font-bold text-xs uppercase tracking-wider text-slate-800 flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                    <span>Detail Komponen Struktur</span>
+                </h2>
+                <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Klik Objek / Sudut</span>
+            </div>
+
+            <div id="inspector-content" class="flex-1 p-4 overflow-y-auto space-y-4">
+                <!-- Default Guide State -->
+                <div class="bg-white border border-slate-200 rounded-xl p-4 text-center space-y-2 shadow-2xs">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-800">Pilih Komponen pada Denah</p>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                        Arahkan kursor atau klik pada <strong>Pondasi Tapak (50×50)</strong>, <strong>Jalur Pondasi Menerus / Sloof</strong>, <strong>Kolom Utama</strong>, <strong>Kolom Praktis Tengah 4A–4D</strong>, atau <strong>Titik Sudut</strong> untuk melihat koordinat & spesifikasi lengkap.
+                    </p>
+                </div>
+
+                <!-- Quick Structural Summary Cards -->
+                <div class="space-y-2">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">Ringkasan Desain Struktur</div>
+                    <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Pondasi Tapak 50×50 cm</span>
+                            <span class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">8 Titik</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">1B, 1C, 1E (eksentris kanan), 3B, 3D, 3E (sentris), 4A, 4D (eksentris kiri).</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Kolom Tambahan Tengah 4A–4D</span>
+                            <span class="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">15×15 cm</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Posisi Y = 582.5 cm (jarak 242.5 cm dari 4A & 4D), bertumpu di atas sloof & pondasi menerus.</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Pondasi Menerus & Sloof</span>
+                            <span class="font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Keliling & Dalam</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Batu kali menerus + Sloof beton bertulang 15×20 cm di bawah seluruh garis dinding.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 py-2.5 bg-white border-t border-slate-200 text-[11px] text-slate-500 flex justify-between items-center">
+                <span>Scroll: Zoom di kursor</span>
+                <span>Drag: Geser denah</span>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        /**
+         * DATA GEOMETRI DENAH PONDASI, SLOOF & KOLOM TYPE 36/72 (SATUAN: CM)
+         * Sistem Koordinat Kartesius:
+         * X = 0 (Batas Kiri / As 1) s.d. X = 600 cm (Batas Kanan / As 4)
+         * Y = 0 (Batas Depan Kavling) s.d. Y = 1200 cm (Batas Belakang Kavling)
+         */
+        const AXIS_X = [
+            { label: '1', x: 0 },
+            { label: '2', x: 180 },
+            { label: '3', x: 300 },
+            { label: '4', x: 600 }
+        ];
+
+        const AXIS_Y = [
+            { label: 'A', y: 340 },
+            { label: 'B', y: 400 },
+            { label: 'C', y: 700 },
+            { label: 'D', y: 825 },
+            { label: 'E', y: 1075 }
+        ];
+
+        // 1. Batas Kavling 600 x 1200 cm
+        const lotBoundary = {
+            id: 'LOT-01',
+            kind: 'lot',
+            name: 'Batas Kavling Tanah (Type 36/72)',
+            material: 'Lahan Efektif 6.00 m × 12.00 m',
+            sizeText: 'Lebar 600 cm × Panjang 1200 cm (Luas 720,000 cm²)',
+            x1: 0, y1: 0, x2: 600, y2: 1200
+        };
+
+        // 2. Jalur Pondasi Menerus Batu Kali & Sloof Beton Bertulang 15x20 cm
+        const continuousFoundations = [
+            { id: 'PM-01', name: 'Pondasi Menerus & Sloof Dinding Kiri (1B–1E)', x1: 7.5, y1: 400, x2: 7.5, y2: 1075, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Tepi luar rata batas kiri X = 0 cm' },
+            { id: 'PM-02', name: 'Pondasi Menerus & Sloof Belakang (1E–3E)', x1: 0, y1: 1075, x2: 300, y2: 1075, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding belakang kamar tidur utama' },
+            { id: 'PM-03', name: 'Pondasi Menerus & Sloof Tengah-Belakang (3D–3E)', x1: 300, y1: 825, x2: 300, y2: 1075, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding pemisah kamar tidur belakang & halaman belakang' },
+            { id: 'PM-04', name: 'Pondasi Menerus & Sloof Belakang Ruang Tamu (3D–4D)', x1: 300, y1: 825, x2: 600, y2: 825, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding belakang ruang keluarga/tamu' },
+            { id: 'PM-05', name: 'Pondasi Menerus & Sloof Dinding Kanan (4A–4D)', x1: 592.5, y1: 340, x2: 592.5, y2: 825, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Menopang kolom praktis tengah Y=582.5 cm; tepi luar rata X = 600 cm' },
+            { id: 'PM-06', name: 'Pondasi Menerus & Sloof Fasad Depan Kanan (3A–4A)', x1: 300, y1: 340, x2: 600, y2: 340, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding depan ruang tamu' },
+            { id: 'PM-07', name: 'Pondasi Menerus & Sloof Teras/Sudut (3A–3B)', x1: 300, y1: 340, x2: 300, y2: 400, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Segmen penghubung As A ke As B (60 cm)' },
+            { id: 'PM-08', name: 'Pondasi Menerus & Sloof Fasad Depan Kiri (1B–3B)', x1: 0, y1: 400, x2: 300, y2: 400, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding depan kamar tidur depan' },
+            { id: 'PM-09', name: 'Pondasi Menerus & Sloof Partisi Tengah (3B–3C)', x1: 300, y1: 400, x2: 300, y2: 700, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding pemisah kamar depan & ruang tamu' },
+            { id: 'PM-10', name: 'Pondasi Menerus & Sloof Kamar Depan/KM (1C–3C)', x1: 0, y1: 700, x2: 300, y2: 700, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding batas kamar tidur depan & kamar mandi' },
+            { id: 'PM-11', name: 'Pondasi Menerus & Sloof Kamar Belakang/KM (1D–3D)', x1: 0, y1: 825, x2: 300, y2: 825, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding batas kamar tidur belakang & kamar mandi' },
+            { id: 'PM-12', name: 'Pondasi Menerus & Sloof Sekat Kamar Mandi (2C–2D)', x1: 180, y1: 700, x2: 180, y2: 825, material: 'Batu Kali Menerus + Sloof Beton 15×20 cm (4D10)', note: 'Dinding pembatas ruang WC/Kamar Mandi (180 × 125 cm)' }
+        ].map(item => ({
+            ...item,
+            kind: 'continuous',
+            length: Math.hypot(item.x2 - item.x1, item.y2 - item.y1)
+        }));
+
+        // 3. 8 Titik Pondasi Tapak 50x50 cm (Eksentris & Sentris)
+        const padFootings = [
+            { id: 'FT-1B', code: '1B', name: 'Pondasi Tapak 1B (Eksentris Kanan)', mode: 'Eksentris Kanan', x: 0, y: 375, w: 50, h: 50, colX: 0, colY: 392.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Sisi kiri tapak rata batas kavling X=0, kolom digeser ke tepi kiri (eksentris kanan).' },
+            { id: 'FT-1C', code: '1C', name: 'Pondasi Tapak 1C (Eksentris Kanan)', mode: 'Eksentris Kanan', x: 0, y: 675, w: 50, h: 50, colX: 0, colY: 692.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Sisi kiri tapak rata batas kavling X=0, menahan pertemuan dinding interior As C.' },
+            { id: 'FT-1E', code: '1E', name: 'Pondasi Tapak 1E (Eksentris Kanan)', mode: 'Eksentris Kanan', x: 0, y: 1050, w: 50, h: 50, colX: 0, colY: 1067.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Sudut kiri belakang bangunan, rata batas lahan X=0.' },
+            { id: 'FT-3B', code: '3B', name: 'Pondasi Tapak 3B (Sentris)', mode: 'Sentris', x: 275, y: 375, w: 50, h: 50, colX: 292.5, colY: 392.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Kolom berada tepat di pusat tapak (300, 400).' },
+            { id: 'FT-3D', code: '3D', name: 'Pondasi Tapak 3D (Sentris)', mode: 'Sentris', x: 275, y: 800, w: 50, h: 50, colX: 292.5, colY: 817.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Titik pertemuan 4 arah balok/sloof utama di pusat (300, 825).' },
+            { id: 'FT-3E', code: '3E', name: 'Pondasi Tapak 3E (Sentris)', mode: 'Sentris', x: 275, y: 1050, w: 50, h: 50, colX: 292.5, colY: 1067.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Sudut belakang tengah bangunan pada (300, 1075).' },
+            { id: 'FT-4A', code: '4A', name: 'Pondasi Tapak 4A (Eksentris Kiri)', mode: 'Eksentris Kiri', x: 550, y: 315, w: 50, h: 50, colX: 585, colY: 332.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Sisi kanan tapak rata batas kavling X=600, kolom di tepi kanan (eksentris kiri).' },
+            { id: 'FT-4D', code: '4D', name: 'Pondasi Tapak 4D (Eksentris Kiri)', mode: 'Eksentris Kiri', x: 550, y: 800, w: 50, h: 50, colX: 585, colY: 817.5, material: 'Beton Bertulang K-225 (50×50×20 cm, Tul. Ø10-150)', note: 'Sisi kanan tapak rata batas kavling X=600, sudut kanan belakang ruang tamu.' }
+        ].map(f => ({ ...f, kind: 'footing' }));
+
+        // 4. Kolom Utama (8 Titik di atas Tapak) & Kolom Praktis (6 Titik di atas Pondasi Menerus)
+        const mainColumns = padFootings.map(f => ({
+            id: 'KU-' + f.code,
+            code: f.code,
+            kind: 'main_col',
+            name: `Kolom Utama ${f.code} (${f.mode})`,
+            x: f.colX,
+            y: f.colY,
+            w: 15,
+            h: 15,
+            material: 'Beton Bertulang K-225 (15×15 cm, 4Ø10, Begel Ø8-150)',
+            note: `Bertumpu langsung pada Pondasi Tapak 50×50 cm (${f.code}).`
+        }));
+
+        const practicalColumns = [
+            { id: 'KP-4AD', code: '4A–4D', name: 'Kolom Praktis Tengah Bentang 4A–4D (Baru)', x: 585, y: 575, w: 15, h: 15, material: 'Beton Bertulang 15×15 cm (4Ø10, Begel Ø8-150)', note: 'Ditempatkan tepat di tengah bentang 485 cm antara 4A (Y=340) dan 4D (Y=825) pada Y = 582.5 cm. Bertumpu di atas sloof & pondasi menerus.' },
+            { id: 'KP-1D', code: '1D', name: 'Kolom Praktis 1D', x: 0, y: 817.5, w: 15, h: 15, material: 'Beton Bertulang 15×15 cm (4Ø10, Begel Ø8-150)', note: 'Pengaku pertemuan dinding As 1 dan As D di atas pondasi menerus.' },
+            { id: 'KP-2C', code: '2C', name: 'Kolom Praktis 2C (Sudut KM)', x: 172.5, y: 692.5, w: 15, h: 15, material: 'Beton Bertulang 15×15 cm (4Ø10, Begel Ø8-150)', note: 'Sudut dinding kamar mandi pada koordinat pusat (180, 700).' },
+            { id: 'KP-2D', code: '2D', name: 'Kolom Praktis 2D (Sudut KM)', x: 172.5, y: 817.5, w: 15, h: 15, material: 'Beton Bertulang 15×15 cm (4Ø10, Begel Ø8-150)', note: 'Sudut dinding kamar mandi pada koordinat pusat (180, 825).' },
+            { id: 'KP-3C', code: '3C', name: 'Kolom Praktis 3C', x: 292.5, y: 692.5, w: 15, h: 15, material: 'Beton Bertulang 15×15 cm (4Ø10, Begel Ø8-150)', note: 'Pertemuan dinding tengah As 3 dan As C pada (300, 700).' },
+            { id: 'KP-3A', code: '3A', name: 'Kolom Praktis 3A (Sudut Teras)', x: 292.5, y: 332.5, w: 15, h: 15, material: 'Beton Bertulang 15×15 cm (4Ø10, Begel Ø8-150)', note: 'Sudut belokan dinding depan As 3 dan As A pada (300, 340).' }
+        ].map(c => ({ ...c, kind: 'prac_col' }));
+
+        const allColumns = [...mainColumns, ...practicalColumns];
+
+        // 5. Titik Sudut Penting (Vertices) untuk Snapping & Inspeksi Titik
+        const keyVertices = [];
+        padFootings.forEach(f => {
+            keyVertices.push(
+                { id: `V-${f.code}-BL`, name: `Sudut Kiri-Bawah Tapak ${f.code}`, x: f.x, y: f.y, ref: f.name },
+                { id: `V-${f.code}-BR`, name: `Sudut Kanan-Bawah Tapak ${f.code}`, x: f.x + f.w, y: f.y, ref: f.name },
+                { id: `V-${f.code}-TR`, name: `Sudut Kanan-Atas Tapak ${f.code}`, x: f.x + f.w, y: f.y + f.h, ref: f.name },
+                { id: `V-${f.code}-TL`, name: `Sudut Kiri-Atas Tapak ${f.code}`, x: f.x, y: f.y + f.h, ref: f.name }
+            );
+        });
+        // Tambahkan titik sudut kavling
+        keyVertices.push(
+            { id: 'V-LOT-00', name: 'Titik Nol Kavling (Depan Kiri)', x: 0, y: 0, ref: 'Batas Kavling 600×1200 cm' },
+            { id: 'V-LOT-60', name: 'Sudut Depan Kanan Kavling', x: 600, y: 0, ref: 'Batas Kavling 600×1200 cm' },
+            { id: 'V-LOT-612', name: 'Sudut Belakang Kanan Kavling', x: 600, y: 1200, ref: 'Batas Kavling 600×1200 cm' },
+            { id: 'V-LOT-012', name: 'Sudut Belakang Kiri Kavling', x: 0, y: 1200, ref: 'Batas Kavling 600×1200 cm' }
+        );
+
+        // Label Ruangan (Informatif)
+        const roomLabels = [
+            { title: 'KAMAR TIDUR BELAKANG', dim: '300 × 250 cm', x: 150, y: 950 },
+            { title: 'KM / WC', dim: '180 × 125 cm', x: 90, y: 762.5 },
+            { title: 'KAMAR TIDUR DEPAN', dim: '300 × 300 cm', x: 150, y: 550 },
+            { title: 'RUANG TAMU / KELUARGA', dim: '300 × 485 cm', x: 450, y: 582.5 },
+            { title: 'CARPORT & TERAS DEPAN', dim: '600 × 340/400 cm', x: 300, y: 170 },
+            { title: 'HALAMAN BELAKANG', dim: '600 × 125/375 cm', x: 450, y: 1010 }
+        ];
+
+        // --- Viewport & Canvas State ---
+        const canvas = document.getElementById('diagram-canvas');
+        const ctx = canvas.getContext('2d');
+        const rxCanvas = document.getElementById('ruler-x-canvas');
+        const rxCtx = rxCanvas.getContext('2d');
+        const ryCanvas = document.getElementById('ruler-y-canvas');
+        const ryCtx = ryCanvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+        const tooltip = document.getElementById('hover-tooltip');
+
+        let scale = 0.55; // pixels per cm
+        let offsetX = 0;
+        let offsetY = 0;
+
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let hasMoved = false;
+
+        let hoveredItem = null;
+        let selectedItem = null;
+
+        function resizeCanvases() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            rxCanvas.width = rxCanvas.parentElement.clientWidth;
+            rxCanvas.height = rxCanvas.parentElement.clientHeight;
+            ryCanvas.width = ryCanvas.parentElement.clientWidth;
+            ryCanvas.height = ryCanvas.parentElement.clientHeight;
+            draw();
+        }
+
+        function resetView() {
+            const availW = container.clientWidth - 110;
+            const availH = container.clientHeight - 100;
+            scale = Math.min(availW / 700, availH / 1300);
+            scale = Math.max(0.25, Math.min(scale, 3.0));
+
+            const centerWorldX = 300;
+            const centerWorldY = 600;
+            const centerScreenX = 56 + (container.clientWidth - 56) / 2;
+            const centerScreenY = (container.clientHeight - 36) / 2;
+
+            offsetX = centerScreenX - centerWorldX * scale;
+            offsetY = centerScreenY + centerWorldY * scale;
+            draw();
+        }
+
+        function worldToScreen(wx, wy) {
+            return {
+                x: offsetX + wx * scale,
+                y: offsetY - wy * scale
+            };
+        }
+
+        function screenToWorld(sx, sy) {
+            return {
+                x: (sx - offsetX) / scale,
+                y: (offsetY - sy) / scale
+            };
+        }
+
+        // Adaptive Grid Step: 50 -> 20 -> 10 -> 5 -> 1 cm
+        function getAdaptiveGridSteps(pxPerCm) {
+            const targetMajorPx = 75;
+            const rawCm = targetMajorPx / pxPerCm;
+            const ladder = [1, 5, 10, 20, 50, 100, 200];
+            let major = 50;
+            for (const step of ladder) {
+                if (rawCm <= step) {
+                    major = step;
+                    break;
+                }
+                major = step;
+            }
+            let minor = major / 5;
+            if (major === 20) minor = 5;
+            if (major === 1) minor = 1;
+            return { major, minor };
+        }
+
+        function draw() {
+            // Pure white background (#FFFFFF)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const { major, minor } = getAdaptiveGridSteps(scale);
+            document.getElementById('grid-badge').textContent = `${major} cm (sub ${minor} cm)`;
+
+            const minWorld = screenToWorld(56, canvas.height - 36);
+            const maxWorld = screenToWorld(canvas.width, 0);
+
+            // 1. Minor Grid Lines (#F3F4F6)
+            if (minor * scale >= 6) {
+                ctx.strokeStyle = '#F3F4F6';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let x = Math.floor(minWorld.x / minor) * minor; x <= maxWorld.x; x += minor) {
+                    const sx = worldToScreen(x, 0).x;
+                    ctx.moveTo(sx, 0);
+                    ctx.lineTo(sx, canvas.height);
+                }
+                for (let y = Math.floor(minWorld.y / minor) * minor; y <= maxWorld.y; y += minor) {
+                    const sy = worldToScreen(0, y).y;
+                    ctx.moveTo(0, sy);
+                    ctx.lineTo(canvas.width, sy);
+                }
+                ctx.stroke();
+            }
+
+            // 2. Major Grid Lines (#E5E7EB)
+            ctx.strokeStyle = '#E5E7EB';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let x = Math.floor(minWorld.x / major) * major; x <= maxWorld.x; x += major) {
+                const sx = worldToScreen(x, 0).x;
+                ctx.moveTo(sx, 0);
+                ctx.lineTo(sx, canvas.height);
+            }
+            for (let y = Math.floor(minWorld.y / major) * major; y <= maxWorld.y; y += major) {
+                const sy = worldToScreen(0, y).y;
+                ctx.moveTo(0, sy);
+                ctx.lineTo(canvas.width, sy);
+            }
+            ctx.stroke();
+
+            // 3. Structural Grid Axes (As 1-4 & As A-E)
+            drawStructuralAxes();
+
+            // 4. Lot Boundary (600 x 1200 cm)
+            const lotTL = worldToScreen(0, 1200);
+            const lotBR = worldToScreen(600, 0);
+            const isLotHot = hoveredItem === lotBoundary || selectedItem === lotBoundary;
+            ctx.save();
+            ctx.strokeStyle = isLotHot ? '#2563EB' : '#64748B';
+            ctx.lineWidth = isLotHot ? 2.5 : 1.5;
+            ctx.setLineDash([8, 5]);
+            ctx.strokeRect(lotTL.x, lotTL.y, lotBR.x - lotTL.x, lotBR.y - lotTL.y);
+            ctx.restore();
+
+            // 5. Room Labels (Subtle background watermarks)
+            if (scale >= 0.35) {
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                roomLabels.forEach(r => {
+                    const pos = worldToScreen(r.x, r.y);
+                    ctx.fillStyle = '#94A3B8';
+                    ctx.font = `600 ${Math.max(9, Math.min(12, scale * 15))}px Inter, sans-serif`;
+                    ctx.fillText(r.title, pos.x, pos.y - 6);
+                    ctx.font = `400 ${Math.max(8, Math.min(10, scale * 12))}px JetBrains Mono, monospace`;
+                    ctx.fillText(r.dim, pos.x, pos.y + 8);
+                });
+            }
+
+            // 6. Continuous Foundations (Batu Kali) & Sloof 15x20 cm
+            continuousFoundations.forEach(pm => {
+                const p1 = worldToScreen(pm.x1, pm.y1);
+                const p2 = worldToScreen(pm.x2, pm.y2);
+                const isHot = hoveredItem === pm || selectedItem === pm;
+
+                // Continuous stone footing strip (approx 45 cm visual width)
+                ctx.save();
+                ctx.strokeStyle = isHot ? 'rgba(217, 119, 6, 0.45)' : 'rgba(245, 158, 11, 0.16)';
+                ctx.lineWidth = Math.max(8, 45 * scale);
+                ctx.lineCap = 'butt';
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+
+                // Sloof 15x20 cm core beam
+                ctx.strokeStyle = isHot ? '#B45309' : '#D97706';
+                ctx.lineWidth = Math.max(3, 15 * scale);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+
+                // Centerline dashed
+                ctx.strokeStyle = '#FFFBEB';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+                ctx.restore();
+            });
+
+            // 7. Pad Footings 50x50 cm (8 Titik)
+            padFootings.forEach(ft => {
+                const tl = worldToScreen(ft.x, ft.y + ft.h);
+                const wPx = ft.w * scale;
+                const hPx = ft.h * scale;
+                const isHot = hoveredItem === ft || selectedItem === ft;
+
+                ctx.save();
+                ctx.fillStyle = isHot ? 'rgba(37, 99, 235, 0.35)' : 'rgba(59, 130, 246, 0.18)';
+                ctx.strokeStyle = isHot ? '#1D4ED8' : '#2563EB';
+                ctx.lineWidth = isHot ? 2.5 : 1.75;
+                ctx.fillRect(tl.x, tl.y, wPx, hPx);
+                ctx.strokeRect(tl.x, tl.y, wPx, hPx);
+
+                // Diagonal reinforcement cross lines inside footing
+                ctx.strokeStyle = 'rgba(37, 99, 235, 0.35)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(tl.x, tl.y);
+                ctx.lineTo(tl.x + wPx, tl.y + hPx);
+                ctx.moveTo(tl.x + wPx, tl.y);
+                ctx.lineTo(tl.x, tl.y + hPx);
+                ctx.stroke();
+
+                // Footing label tag
+                if (scale >= 0.4) {
+                    ctx.fillStyle = '#1E40AF';
+                    ctx.font = 'bold 10px JetBrains Mono, monospace';
+                    ctx.textAlign = 'left';
+                    const labelX = ft.x >= 500 ? tl.x - 42 : tl.x + wPx + 4;
+                    ctx.fillText(`T-${ft.code}`, labelX, tl.y + 10);
+                }
+                ctx.restore();
+            });
+
+            // 8. Columns 15x15 cm (Main Columns on Footings & Practical Columns on Continuous Foundation)
+            allColumns.forEach(col => {
+                const tl = worldToScreen(col.x, col.y + col.h);
+                const wPx = Math.max(6, col.w * scale);
+                const hPx = Math.max(6, col.h * scale);
+                const isHot = hoveredItem === col || selectedItem === col;
+                const isMain = col.kind === 'main_col';
+
+                ctx.save();
+                ctx.fillStyle = isMain
+                    ? (isHot ? '#BE123C' : '#E11D48')
+                    : (isHot ? '#047857' : '#059669');
+                ctx.strokeStyle = isHot ? '#111827' : '#FFFFFF';
+                ctx.lineWidth = isHot ? 2 : 1.2;
+
+                ctx.fillRect(tl.x, tl.y, wPx, hPx);
+                ctx.strokeRect(tl.x, tl.y, wPx, hPx);
+
+                // Highlight callout badge for the newly added mid-span column 4A-4D
+                if (col.id === 'KP-4AD' && scale >= 0.35) {
+                    ctx.fillStyle = '#065F46';
+                    ctx.font = 'bold 10px Inter, sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText('Kolom 15×15 (Tengah 4A–4D)', tl.x - 8, tl.y + hPx / 2 + 3);
+                }
+                ctx.restore();
+            });
+
+            // 9. Interactive Corner Vertices (Show subtle dots when zoomed in or hovered)
+            keyVertices.forEach(v => {
+                const sp = worldToScreen(v.x, v.y);
+                const isHot = hoveredItem === v || selectedItem === v;
+                if (isHot || scale >= 1.1) {
+                    ctx.beginPath();
+                    ctx.arc(sp.x, sp.y, isHot ? 5 : 3, 0, Math.PI * 2);
+                    ctx.fillStyle = isHot ? '#2563EB' : '#64748B';
+                    ctx.fill();
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+            });
+
+            drawPinnedRulers(major, minor);
+        }
+
+        function drawStructuralAxes() {
+            ctx.save();
+            ctx.strokeStyle = '#CBD5E1';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 4]);
+
+            // Vertical Axes (As 1, 2, 3, 4)
+            AXIS_X.forEach(ax => {
+                const top = worldToScreen(ax.x, 1260);
+                const bot = worldToScreen(ax.x, -55);
+                ctx.beginPath();
+                ctx.moveTo(top.x, top.y);
+                ctx.lineTo(bot.x, bot.y);
+                ctx.stroke();
+
+                // Axis Bubble at Bottom
+                ctx.save();
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.arc(bot.x, bot.y + 12, 11, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = '#0F172A';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(ax.label, bot.x, bot.y + 12);
+                ctx.restore();
+            });
+
+            // Horizontal Axes (As A, B, C, D, E)
+            AXIS_Y.forEach(ay => {
+                const left = worldToScreen(-55, ay.y);
+                const right = worldToScreen(645, ay.y);
+                ctx.beginPath();
+                ctx.moveTo(left.x, left.y);
+                ctx.lineTo(right.x, right.y);
+                ctx.stroke();
+
+                // Axis Bubble at Left
+                ctx.save();
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.arc(left.x - 12, left.y, 11, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = '#0F172A';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(ay.label, left.x - 12, left.y);
+                ctx.restore();
+            });
+
+            ctx.restore();
+        }
+
+        function drawPinnedRulers(major, minor) {
+            // Bottom X Ruler
+            rxCtx.clearRect(0, 0, rxCanvas.width, rxCanvas.height);
+            rxCtx.font = '10px JetBrains Mono, monospace';
+            rxCtx.textAlign = 'center';
+
+            const minX = screenToWorld(56, 0).x;
+            const maxX = screenToWorld(canvas.width, 0).x;
+
+            for (let x = Math.floor(minX / minor) * minor; x <= maxX; x += minor) {
+                const sx = worldToScreen(x, 0).x - 56;
+                if (sx < 0 || sx > rxCanvas.width) continue;
+                const isMajor = Math.abs(x % major) < 0.001;
+
+                rxCtx.strokeStyle = isMajor ? '#475569' : '#CBD5E1';
+                rxCtx.lineWidth = 1;
+                rxCtx.beginPath();
+                rxCtx.moveTo(sx, 0);
+                rxCtx.lineTo(sx, isMajor ? 8 : 4);
+                rxCtx.stroke();
+
+                if (isMajor) {
+                    rxCtx.fillStyle = x === 0 ? '#2563EB' : '#1E293B';
+                    rxCtx.fillText(`${Math.round(x)}`, sx, 20);
+                }
+            }
+
+            // Left Y Ruler
+            ryCtx.clearRect(0, 0, ryCanvas.width, ryCanvas.height);
+            ryCtx.font = '10px JetBrains Mono, monospace';
+            ryCtx.textAlign = 'right';
+
+            const minY = screenToWorld(0, canvas.height - 36).y;
+            const maxY = screenToWorld(0, 0).y;
+
+            for (let y = Math.floor(minY / minor) * minor; y <= maxY; y += minor) {
+                const sy = worldToScreen(0, y).y;
+                if (sy < 0 || sy > ryCanvas.height) continue;
+                const isMajor = Math.abs(y % major) < 0.001;
+
+                ryCtx.strokeStyle = isMajor ? '#475569' : '#CBD5E1';
+                ryCtx.lineWidth = 1;
+                ryCtx.beginPath();
+                ryCtx.moveTo(ryCanvas.width - (isMajor ? 8 : 4), sy);
+                ryCtx.lineTo(ryCanvas.width, sy);
+                ryCtx.stroke();
+
+                if (isMajor) {
+                    ryCtx.fillStyle = y === 0 ? '#2563EB' : '#1E293B';
+                    ryCtx.fillText(`${Math.round(y)}`, ryCanvas.width - 11, sy + 3);
+                }
+            }
+        }
+
+        // --- Hit Detection (Vertices -> Columns -> Pad Footings -> Continuous Foundations -> Lot Boundary) ---
+        function hitTest(sx, sy) {
+            const w = screenToWorld(sx, sy);
+            const tol = 10 / scale;
+
+            // 1. Key Vertices
+            for (const v of keyVertices) {
+                if (Math.hypot(w.x - v.x, w.y - v.y) <= tol) {
+                    return v;
+                }
+            }
+
+            // 2. Columns (Main & Practical)
+            for (const col of allColumns) {
+                if (w.x >= col.x - 2 && w.x <= col.x + col.w + 2 && w.y >= col.y - 2 && w.y <= col.y + col.h + 2) {
+                    return col;
+                }
+            }
+
+            // 3. Pad Footings 50x50 cm
+            for (const ft of padFootings) {
+                if (w.x >= ft.x && w.x <= ft.x + ft.w && w.y >= ft.y && w.y <= ft.y + ft.h) {
+                    return ft;
+                }
+            }
+
+            // 4. Continuous Foundations & Sloof
+            for (const pm of continuousFoundations) {
+                if (distToSegment(w, { x: pm.x1, y: pm.y1 }, { x: pm.x2, y: pm.y2 }) <= Math.max(12, tol)) {
+                    return pm;
+                }
+            }
+
+            // 5. Lot Boundary Perimeter
+            const nearLeft = Math.abs(w.x - 0) <= tol && w.y >= 0 && w.y <= 1200;
+            const nearRight = Math.abs(w.x - 600) <= tol && w.y >= 0 && w.y <= 1200;
+            const nearBot = Math.abs(w.y - 0) <= tol && w.x >= 0 && w.x <= 600;
+            const nearTop = Math.abs(w.y - 1200) <= tol && w.x >= 0 && w.x <= 600;
+            if (nearLeft || nearRight || nearBot || nearTop) {
+                return lotBoundary;
+            }
+
+            return null;
+        }
+
+        function distToSegment(p, a, b) {
+            const l2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+            if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+            let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(p.x - (a.x + t * (b.x - a.x)), p.y - (a.y + t * (b.y - a.y)));
+        }
+
+        // --- Mouse Interactions (Wheel Zoom on Cursor, Pan, Hover, Click) ---
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const sx = e.clientX - rect.left;
+            const sy = e.clientY - rect.top;
+
+            const worldBefore = screenToWorld(sx, sy);
+            const zoomFactor = e.deltaY < 0 ? 1.16 : 1 / 1.16;
+            scale = Math.max(0.2, Math.min(20.0, scale * zoomFactor));
+
+            offsetX = sx - worldBefore.x * scale;
+            offsetY = sy + worldBefore.y * scale;
+            tooltip.classList.add('hidden');
+            draw();
+        }, { passive: false });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                isDragging = true;
+                hasMoved = false;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const sx = e.clientX - rect.left;
+            const sy = e.clientY - rect.top;
+
+            if (sx >= 0 && sx <= canvas.width && sy >= 0 && sy <= canvas.height) {
+                const w = screenToWorld(sx, sy);
+                document.getElementById('cursor-coords').textContent = `X: ${w.x.toFixed(1)} cm, Y: ${w.y.toFixed(1)} cm`;
+            }
+
+            if (isDragging) {
+                const dx = e.clientX - dragStartX;
+                const dy = e.clientY - dragStartY;
+                if (Math.hypot(dx, dy) > 3) hasMoved = true;
+                offsetX += dx;
+                offsetY += dy;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                tooltip.classList.add('hidden');
+                draw();
+                return;
+            }
+
+            if (sx >= 56 && sx <= canvas.width && sy >= 0 && sy <= canvas.height - 36) {
+                const hit = hitTest(sx, sy);
+                if (hit !== hoveredItem) {
+                    hoveredItem = hit;
+                    draw();
+                }
+
+                if (hit) {
+                    canvas.style.cursor = 'pointer';
+                    document.getElementById('tip-name').textContent = hit.name;
+                    document.getElementById('tip-material').textContent = hit.material || hit.ref || 'Titik Sudut Struktur';
+                    document.getElementById('tip-size').textContent = formatQuickMetric(hit);
+
+                    const tipX = Math.min(canvas.width - 260, sx + 14);
+                    const tipY = Math.min(canvas.height - 95, sy + 14);
+                    tooltip.style.left = `${tipX}px`;
+                    tooltip.style.top = `${tipY}px`;
+                    tooltip.classList.remove('hidden');
+                } else {
+                    canvas.style.cursor = 'grab';
+                    tooltip.classList.add('hidden');
+                }
+            } else {
+                tooltip.classList.add('hidden');
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (hasMoved) return;
+            const rect = canvas.getBoundingClientRect();
+            const sx = e.clientX - rect.left;
+            const sy = e.clientY - rect.top;
+
+            selectedItem = hitTest(sx, sy);
+            renderInspector(selectedItem);
+            draw();
+        });
+
+        function formatQuickMetric(item) {
+            if (item.kind === 'footing') return `Ukuran: 50 × 50 cm | Sudut (${item.x}, ${item.y}) cm`;
+            if (item.kind === 'main_col' || item.kind === 'prac_col') return `Profil: 15 × 15 cm | Pusat (${(item.x + 7.5).toFixed(1)}, ${(item.y + 7.5).toFixed(1)}) cm`;
+            if (item.kind === 'continuous') return `Panjang: ${item.length.toFixed(1)} cm | (${item.x1}, ${item.y1}) → (${item.x2}, ${item.y2})`;
+            if (item.kind === 'lot') return `600 × 1200 cm (720,000 cm²)`;
+            return `Koordinat: X = ${item.x} cm, Y = ${item.y} cm`;
+        }
+
+        function renderInspector(item) {
+            const panel = document.getElementById('inspector-content');
+            if (!item) {
+                panel.innerHTML = `
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 text-center space-y-2 shadow-2xs">
+                        <p class="text-xs font-semibold text-slate-800">Tidak ada komponen terpilih</p>
+                        <p class="text-[11px] text-slate-500">Klik pondasi tapak, sloof/pondasi menerus, kolom 15×15, atau titik sudut untuk inspeksi detail.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let badgeColor = 'bg-blue-50 text-blue-700 border-blue-200';
+            let typeLabel = 'Komponen Struktur';
+            let sizeDetail = '';
+            let coordDetail = '';
+
+            if (item.kind === 'footing') {
+                badgeColor = 'bg-blue-50 text-blue-700 border-blue-200';
+                typeLabel = `Pondasi Tapak (${item.mode})`;
+                sizeDetail = '50 cm × 50 cm (Tebal pelat 20 cm, Kedalaman galian ±80–100 cm)';
+                coordDetail = `
+                    <div>• Kiri-Bawah: <span class="font-semibold text-slate-900">X: ${item.x} cm, Y: ${item.y} cm</span></div>
+                    <div>• Kanan-Atas: <span class="font-semibold text-slate-900">X: ${item.x + item.w} cm, Y: ${item.y + item.h} cm</span></div>
+                    <div>• As Kolom: <span class="font-semibold text-blue-700">X: ${item.colX + 7.5} cm, Y: ${item.colY + 7.5} cm</span></div>
+                `;
+            } else if (item.kind === 'main_col' || item.kind === 'prac_col') {
+                const isMain = item.kind === 'main_col';
+                badgeColor = isMain ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                typeLabel = isMain ? 'Kolom Utama (Di Atas Tapak)' : 'Kolom Praktis (Di Atas Sloof)';
+                sizeDetail = '15 cm × 15 cm';
+                coordDetail = `
+                    <div>• Pusat As Kolom: <span class="font-semibold text-slate-900">X: ${(item.x + 7.5).toFixed(1)} cm, Y: ${(item.y + 7.5).toFixed(1)} cm</span></div>
+                    <div>• Sudut Kolom: <span class="font-semibold text-slate-900">(${item.x}, ${item.y}) s.d. (${item.x + 15}, ${item.y + 15}) cm</span></div>
+                `;
+            } else if (item.kind === 'continuous') {
+                badgeColor = 'bg-amber-50 text-amber-800 border-amber-200';
+                typeLabel = 'Pondasi Menerus & Sloof';
+                sizeDetail = `Panjang Aktual: ${item.length.toFixed(1)} cm | Sloof 15 × 20 cm`;
+                coordDetail = `
+                    <div>• Titik Awal: <span class="font-semibold text-slate-900">X: ${item.x1} cm, Y: ${item.y1} cm</span></div>
+                    <div>• Titik Akhir: <span class="font-semibold text-slate-900">X: ${item.x2} cm, Y: ${item.y2} cm</span></div>
+                `;
+            } else if (item.kind === 'lot') {
+                badgeColor = 'bg-slate-100 text-slate-800 border-slate-300';
+                typeLabel = 'Batas Lahan / Kavling';
+                sizeDetail = item.sizeText;
+                coordDetail = `<div>• Area Kavling: <span class="font-semibold text-slate-900">(0, 0) cm s.d. (600, 1200) cm</span></div>`;
+            } else {
+                badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                typeLabel = 'Titik Sudut (Vertex)';
+                sizeDetail = 'Titik Referensi Koordinat';
+                coordDetail = `<div>• Koordinat Tepat: <span class="font-semibold text-indigo-700">X: ${item.x} cm, Y: ${item.y} cm</span></div>`;
+            }
+
+            panel.innerHTML = `
+                <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3.5 shadow-2xs">
+                    <div>
+                        <span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeColor}">${typeLabel}</span>
+                        <h3 class="font-bold text-sm text-slate-900 mt-2 leading-snug">${item.name}</h3>
+                    </div>
+
+                    <div class="space-y-2.5 pt-2 border-t border-slate-100 text-xs">
+                        <div>
+                            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Jenis Material / Profil</div>
+                            <div class="font-medium text-slate-800 mt-0.5">${item.material || item.ref}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Panjang / Ukuran Aktual</div>
+                            <div class="font-mono font-semibold text-emerald-700 mt-0.5">${sizeDetail}</div>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                            <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Koordinat Kartesius (cm)</div>
+                            <div class="font-mono text-[11px] text-slate-700 space-y-0.5">
+                                ${coordDetail}
+                            </div>
+                        </div>
+
+                        ${item.note ? `
+                        <div class="bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 text-[11px] text-slate-600 leading-relaxed">
+                            <strong class="text-blue-800">Catatan Teknis:</strong> ${item.note}
+                        </div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        document.getElementById('reset-btn').addEventListener('click', resetView);
+        window.addEventListener('resize', resizeCanvases);
+
+        window.onload = function() {
+            resizeCanvases();
+            resetView();
+        };
+    </script>
+</body>
+</html>

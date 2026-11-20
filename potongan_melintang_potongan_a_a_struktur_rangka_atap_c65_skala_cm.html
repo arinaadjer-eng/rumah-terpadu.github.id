@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Potongan Melintang (Potongan A-A) Struktur & Rangka Atap C65 (Skala cm)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FFFFFF;
+      color: #111827;
+      overflow: hidden;
+      user-select: none;
+    }
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    canvas:active {
+      cursor: grabbing;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-white text-gray-900">
+
+  <!-- Header & Legenda Interaktif -->
+  <header class="border-b border-gray-200 bg-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 z-20 shadow-2xs">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs tracking-wider shrink-0">
+        A-A
+      </div>
+      <div>
+        <h1 class="text-sm sm:text-base font-bold text-gray-900 leading-tight">
+          Potongan Melintang (Potongan A-A) — Stepped Gabled Roof Tipe 36/72
+        </h1>
+        <p class="text-[11px] text-gray-500">
+          Koordinat Kartesius (cm) • X: Lebar Bangunan (0–600 cm) • Y: Elevasi Lantai (±0.00 cm)
+        </p>
+      </div>
+    </div>
+
+    <!-- Legenda Warna Interaktif -->
+    <div id="legend-container" class="flex flex-wrap items-center gap-1.5 text-xs"></div>
+
+    <!-- Kontrol Zoom & Reset -->
+    <div class="flex items-center gap-2 no-print">
+      <span id="zoom-indicator" class="font-mono-tech text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md border border-gray-200">
+        Grid: 50 cm
+      </span>
+      <button id="btn-reset" class="px-3 py-1.5 text-xs font-semibold bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-800 border border-gray-300 rounded-lg shadow-2xs transition cursor-pointer">
+        Reset View
+      </button>
+    </div>
+  </header>
+
+  <!-- Area Utama Kanvas & Panel Detail -->
+  <main class="relative flex-1 w-full h-full overflow-hidden bg-white">
+    <canvas id="cadCanvas"></canvas>
+
+    <!-- Koordinat Kursor Real-time -->
+    <div class="absolute top-3 left-16 bg-white/95 backdrop-blur-xs border border-gray-200 rounded-lg px-3 py-1.5 shadow-2xs pointer-events-none flex items-center gap-3 text-xs font-mono-tech">
+      <span class="text-gray-500">Posisi:</span>
+      <span class="font-semibold text-gray-900">X: <span id="cursor-x">0.0</span> cm</span>
+      <span class="text-gray-300">|</span>
+      <span class="font-semibold text-gray-900">Elevasi Y: <span id="cursor-y">0.0</span> cm</span>
+    </div>
+
+    <!-- Petunjuk Navigasi -->
+    <div class="absolute bottom-9 left-16 bg-white/90 border border-gray-200 rounded-md px-2.5 py-1 text-[11px] text-gray-500 pointer-events-none hidden sm:block">
+      Scroll Mouse: Zoom pada kursor • Klik & Geser: Pan • Klik Komponen/Sudut: Inspeksi Detail
+    </div>
+
+    <!-- Panel Detail Mengambang -->
+    <aside id="detail-panel" class="hidden absolute top-3 right-3 w-80 max-w-[calc(100vw-3rem)] bg-white/98 backdrop-blur-md border border-gray-300 rounded-xl shadow-lg p-4 z-30 transition-all">
+      <div class="flex items-start justify-between gap-2 border-b border-gray-100 pb-2.5 mb-3">
+        <div>
+          <span id="detail-category" class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 mb-1">
+            KATEGORI
+          </span>
+          <h2 id="detail-title" class="text-sm font-bold text-gray-900 leading-snug">
+            Nama Komponen
+          </h2>
+        </div>
+        <button id="btn-close-detail" class="text-gray-400 hover:text-gray-700 p-1 rounded-md hover:bg-gray-100 text-xs font-bold cursor-pointer" title="Tutup Detail">
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <div class="text-[11px] text-gray-500 font-medium">Jenis Material / Profil</div>
+          <div id="detail-material" class="font-semibold text-gray-800 mt-0.5">-</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-lg border border-gray-200/80">
+          <div>
+            <div class="text-[10px] text-gray-500 uppercase">Panjang / Ukuran</div>
+            <div id="detail-size" class="font-mono-tech font-bold text-gray-900 mt-0.5">-</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-gray-500 uppercase">Elevasi / Ket.</div>
+            <div id="detail-note" class="font-medium text-gray-800 mt-0.5">-</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-[11px] text-gray-500 font-medium mb-1">Koordinat Kartesius (cm)</div>
+          <div id="detail-coords" class="font-mono-tech text-[11px] bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-800 leading-relaxed whitespace-pre-line">
+            -
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    /**
+     * POTONGAN MELINTANG (POTONGAN A-A) INTERAKTIF DALAM SATUAN CM
+     * Rumah Subsidi Tipe 36/72 - Stepped Gabled Roof
+     */
+    const canvas = document.getElementById('cadCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const RULER_LEFT = 54;
+    const RULER_BOTTOM = 30;
+
+    let camera = {
+      scale: 0.9,
+      offsetX: 160,
+      offsetY: 520
+    };
+
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let hoveredItem = null;
+    let selectedItem = null;
+    let hiddenCategories = new Set();
+
+    const CATEGORIES = {
+      foundation: { label: 'Pondasi & Tanah', color: '#78716C', fill: 'rgba(168, 162, 158, 0.25)' },
+      concrete: { label: 'Beton Bertulang (Tapak/Sloof/Kolom/Ring)', color: '#1E293B', fill: 'rgba(71, 85, 105, 0.28)' },
+      wall: { label: 'Dinding & Parapet Hebel', color: '#475569', fill: 'rgba(203, 213, 225, 0.45)' },
+      truss: { label: 'Rangka Baja Ringan C65', color: '#DC2626', fill: '#DC2626' },
+      roofing: { label: 'Atap Spandek, Reng & Flashing', color: '#0284C7', fill: '#0284C7' },
+      ceiling: { label: 'Plafon Gypsum & Rangka Hollow', color: '#059669', fill: '#059669' },
+      node: { label: 'Titik Elevasi & Sudut Kritis', color: '#7C3AED', fill: '#7C3AED' }
+    };
+
+    const elements = [];
+
+    function buildSectionModel() {
+      elements.length = 0;
+
+      // =====================================================================
+      // 1. LAPISAN TANAH, URUGAN PASIR & RABAT BETON LANTAI KERJA
+      // =====================================================================
+      elements.push({
+        id: 'soil-base',
+        type: 'rect',
+        category: 'foundation',
+        name: 'Tanah Dasar & Urugan Tanah Peninggian',
+        material: 'Tanah Keras / Tanah Urug Dipadatkan per Lapis 20 cm',
+        x1: -40, y1: -120, x2: 640, y2: -10,
+        sizeText: '680 cm × 110 cm',
+        note: 'Elevasi Y = -120 s.d. -10 cm',
+        hatch: 'soil'
+      });
+
+      elements.push({
+        id: 'sand-bed',
+        type: 'rect',
+        category: 'foundation',
+        name: 'Lapisan Pasir Urug Bawah Lantai',
+        material: 'Pasir Urug Padat (Tebal 5 cm)',
+        x1: 15, y1: -10, x2: 585, y2: -5,
+        sizeText: '570 cm × 5 cm',
+        note: 'Elevasi Y = -10 s.d. -5 cm'
+      });
+
+      elements.push({
+        id: 'floor-slab',
+        type: 'rect',
+        category: 'concrete',
+        name: 'Rabat Beton Lantai Kerja & Keramik Lantai Utama',
+        material: 'Rabat Beton K-175 (5 cm) + Spesi & Keramik 40×40 cm',
+        x1: 15, y1: -5, x2: 585, y2: 0,
+        sizeText: '570 cm × 5 cm',
+        note: 'Elevasi Lantai Utama ±0.00 cm'
+      });
+
+      // =====================================================================
+      // 2. PONDASI MENERUS BATU KALI (Trapesium Y=-80 s.d. Y=-20 cm)
+      // =====================================================================
+      // Kiri (Rata batas kiri X=0, bawah X=0..60, atas X=0..30)
+      elements.push({
+        id: 'stone-left',
+        type: 'poly',
+        category: 'foundation',
+        name: 'Pondasi Menerus Batu Kali Kiri (Eksentris)',
+        material: 'Pasangan Batu Kali Belah 1Pc : 4Psr (Lebar Bawah 60 cm, Atas 30 cm, Tinggi 60 cm)',
+        points: [
+          { x: 0, y: -80 }, { x: 60, y: -80 },
+          { x: 30, y: -20 }, { x: 0, y: -20 }
+        ],
+        sizeText: '60/30 cm × T 60 cm',
+        note: 'Elevasi Y = -80 s.d. -20 cm',
+        hatch: 'stone'
+      });
+
+      // Tengah (Sentris di As 3 X=300: bawah X=270..330, atas X=285..315)
+      elements.push({
+        id: 'stone-mid',
+        type: 'poly',
+        category: 'foundation',
+        name: 'Pondasi Menerus Batu Kali Tengah (Sentris As 3)',
+        material: 'Pasangan Batu Kali Belah 1Pc : 4Psr (Lebar Bawah 60 cm, Atas 30 cm, Tinggi 60 cm)',
+        points: [
+          { x: 270, y: -80 }, { x: 330, y: -80 },
+          { x: 315, y: -20 }, { x: 285, y: -20 }
+        ],
+        sizeText: '60/30 cm × T 60 cm',
+        note: 'Elevasi Y = -80 s.d. -20 cm',
+        hatch: 'stone'
+      });
+
+      // Kanan (Rata batas kanan X=600: bawah X=540..600, atas X=570..600)
+      elements.push({
+        id: 'stone-right',
+        type: 'poly',
+        category: 'foundation',
+        name: 'Pondasi Menerus Batu Kali Kanan (Eksentris)',
+        material: 'Pasangan Batu Kali Belah 1Pc : 4Psr (Lebar Bawah 60 cm, Atas 30 cm, Tinggi 60 cm)',
+        points: [
+          { x: 540, y: -80 }, { x: 600, y: -80 },
+          { x: 600, y: -20 }, { x: 570, y: -20 }
+        ],
+        sizeText: '60/30 cm × T 60 cm',
+        note: 'Elevasi Y = -80 s.d. -20 cm',
+        hatch: 'stone'
+      });
+
+      // =====================================================================
+      // 3. PONDASI TAPAK FOOTPLATE 50x50x20 CM (Y=-100 s.d. Y=-80 cm)
+      // =====================================================================
+      const footplates = [
+        { id: 'fp-left', name: 'Pondasi Tapak Footplate Kiri (Eksentris As 1)', x1: 0, x2: 50, note: 'Rata batas kiri X=0..50, Y=-100..-80' },
+        { id: 'fp-mid', name: 'Pondasi Tapak Footplate Tengah (Sentris As 3)', x1: 275, x2: 325, note: 'Sentris As 3 X=275..325, Y=-100..-80' },
+        { id: 'fp-right', name: 'Pondasi Tapak Footplate Kanan (Eksentris As 4)', x1: 550, x2: 600, note: 'Rata batas kanan X=550..600, Y=-100..-80' }
+      ];
+      footplates.forEach(fp => {
+        elements.push({
+          id: fp.id,
+          type: 'rect',
+          category: 'concrete',
+          name: fp.name,
+          material: 'Beton Bertulang K-225 (50×50 cm, Tebal 20 cm, Besi Ø10-150)',
+          x1: fp.x1, y1: -100, x2: fp.x2, y2: -80,
+          sizeText: '50 cm × 20 cm',
+          note: fp.note,
+          hatch: 'concrete'
+        });
+      });
+
+      // =====================================================================
+      // 4. SLOOF BETON BERTULANG 15x20 CM (Y=-20 s.d. Y=0 cm)
+      // =====================================================================
+      // Sloof Penghubung Melintang (X=15..292.5 dan X=307.5..585)
+      elements.push({
+        id: 'sloof-span-left',
+        type: 'rect',
+        category: 'concrete',
+        name: 'Balok Sloof Penghubung Modul Kiri',
+        material: 'Beton Bertulang 15×20 cm (4Ø10, Begel Ø8-150)',
+        x1: 15, y1: -20, x2: 292.5, y2: 0,
+        sizeText: '277.5 cm × 20 cm',
+        note: 'Mengikat tapak kiri & tengah (Y=-20..0)'
+      });
+
+      elements.push({
+        id: 'sloof-span-right',
+        type: 'rect',
+        category: 'concrete',
+        name: 'Balok Sloof Penghubung Modul Kanan',
+        material: 'Beton Bertulang 15×20 cm (4Ø10, Begel Ø8-150)',
+        x1: 307.5, y1: -20, x2: 585, y2: 0,
+        sizeText: '277.5 cm × 20 cm',
+        note: 'Mengikat tapak tengah & kanan (Y=-20..0)'
+      });
+
+      // Penampang Sloof Utama di Titik Kolom (X=0..15, X=292.5..307.5, X=585..600)
+      const sloofNodes = [
+        { id: 'sloof-left', name: 'Sloof Utama Kiri (As 1)', x1: 0, x2: 15 },
+        { id: 'sloof-mid', name: 'Sloof Utama Tengah (As 3)', x1: 292.5, x2: 307.5 },
+        { id: 'sloof-right', name: 'Sloof Utama Kanan (As 4)', x1: 585, x2: 600 }
+      ];
+      sloofNodes.forEach(s => {
+        elements.push({
+          id: s.id,
+          type: 'rect',
+          category: 'concrete',
+          name: s.name,
+          material: 'Beton Bertulang 15×20 cm',
+          x1: s.x1, y1: -20, x2: s.x2, y2: 0,
+          sizeText: '15 cm × 20 cm',
+          note: 'Elevasi Y = -20 s.d. 0 cm',
+          hatch: 'concrete'
+        });
+      });
+
+      // =====================================================================
+      // 5. KOLOM UTAMA 15x15 CM & RING BALOK / WALL PLATE (Y=0 s.d. Y=320 cm)
+      // =====================================================================
+      const columns = [
+        { id: 'col-left', name: 'Kolom Utama Kiri (As 1)', x1: 0, x2: 15, y1: -80, y2: 300, note: 'Pedestal (-80..0) + Kolom Utama (0..300)' },
+        { id: 'col-mid', name: 'Kolom Utama Tengah (As 3)', x1: 292.5, x2: 307.5, y1: -80, y2: 300, note: 'Pedestal (-80..0) + Kolom Utama (0..300)' },
+        { id: 'col-right', name: 'Kolom Utama Kanan (As 4)', x1: 585, x2: 600, y1: -80, y2: 300, note: 'Pedestal (-80..0) + Kolom Utama (0..300)' }
+      ];
+      columns.forEach(c => {
+        elements.push({
+          id: c.id,
+          type: 'rect',
+          category: 'concrete',
+          name: c.name,
+          material: 'Beton Bertulang 15×15 cm (4Ø10, Begel Ø8-150)',
+          x1: c.x1, y1: c.y1, x2: c.x2, y2: c.y2,
+          sizeText: `15 cm × ${c.y2 - c.y1} cm`,
+          note: c.note,
+          hatch: 'concrete'
+        });
+      });
+
+      // Ring Balok / Wall Plate 15x20 cm (Y=300 s.d. Y=320 cm)
+      const ringBeams = [
+        { id: 'rb-left', name: 'Ring Balok / Wall Plate Kiri (As 1)', x1: 0, x2: 15, y1: 300, y2: 320, note: 'Tumpuan Kuda-Kuda Modul Kiri (+3.20 m)' },
+        { id: 'rb-mid', name: 'Ring Balok / Wall Plate Tengah (As 3)', x1: 292.5, x2: 307.5, y1: 300, y2: 320, note: 'Tumpuan Kuda-Kuda Tengah (+3.20 m)' },
+        { id: 'rb-right', name: 'Ring Balok / Wall Plate Kanan (As 4)', x1: 585, x2: 600, y1: 300, y2: 320, note: 'Tumpuan Kuda-Kuda Modul Kanan (+3.20 m)' }
+      ];
+      ringBeams.forEach(rb => {
+        elements.push({
+          id: rb.id,
+          type: 'rect',
+          category: 'concrete',
+          name: rb.name,
+          material: 'Ring Balok Beton Bertulang 15×20 cm (4Ø10, Begel Ø8-150)',
+          x1: rb.x1, y1: rb.y1, x2: rb.x2, y2: rb.y2,
+          sizeText: '15 cm × 20 cm',
+          note: rb.note,
+          hatch: 'concrete'
+        });
+      });
+
+      // =====================================================================
+      // 6. DINDING TOMBAK LAYAR / PARAPET & FIREWALL (Stepped Gabled Roof)
+      // =====================================================================
+      // Dinding Parapet / Tombak Layar Kiri (X=0..15, Y=320..520 cm)
+      elements.push({
+        id: 'parapet-left',
+        type: 'rect',
+        category: 'wall',
+        name: 'Dinding Tombak Layar / Parapet Kiri (As 1)',
+        material: 'Pasangan Bata Ringan / Hebel 15 cm + Plester Aci + Kolom Praktis',
+        x1: 0, y1: 320, x2: 15, y2: 520,
+        sizeText: '15 cm × 200 cm',
+        note: 'Puncak Parapet Kiri di Elevasi +5.20 m (Y=520 cm)',
+        hatch: 'wall'
+      });
+
+      // Dinding Tombak Layar Tengah / Firewall (X=292.5..307.5, Y=320..520 cm)
+      elements.push({
+        id: 'parapet-mid',
+        type: 'rect',
+        category: 'wall',
+        name: 'Dinding Tombak Layar Tengah / Firewall Stepped Roof (As 3)',
+        material: 'Pasangan Bata Ringan / Hebel 15 cm + Plester Aci Waterproof',
+        x1: 292.5, y1: 320, x2: 307.5, y2: 520,
+        sizeText: '15 cm × 200 cm',
+        note: 'Pembatas Stepped Roof hingga +5.20 m (Y=520 cm)',
+        hatch: 'wall'
+      });
+
+      // Dinding Tombak Layar Kanan (X=585..600, Y=320..480 cm)
+      elements.push({
+        id: 'parapet-right',
+        type: 'rect',
+        category: 'wall',
+        name: 'Dinding Tombak Layar / Parapet Kanan (As 4)',
+        material: 'Pasangan Bata Ringan / Hebel 15 cm + Plester Aci',
+        x1: 585, y1: 320, x2: 600, y2: 480,
+        sizeText: '15 cm × 160 cm',
+        note: 'Puncak Parapet Kanan di Elevasi +4.80 m (Y=480 cm)',
+        hatch: 'wall'
+      });
+
+      // =====================================================================
+      // 7. PLAFON GYPSUM & RANGKA HOLLOW 40x40 MM
+      // =====================================================================
+      // Plafon Modul Kiri (Y=300 cm, X=15..292.5)
+      elements.push({
+        id: 'ceiling-left',
+        type: 'line',
+        category: 'ceiling',
+        name: 'Plafon Gypsum & Rangka Hollow (Modul Kiri)',
+        material: 'Gypsum Board 9 mm + Rangka Hollow Galvalum 40×40 mm',
+        x1: 15, y1: 300, x2: 292.5, y2: 300,
+        width: 3.5,
+        sizeText: '277.5 cm',
+        note: 'Elevasi Plafon Modul Tinggi: +3.00 m (Y=300 cm)'
+      });
+
+      // Plafon Modul Kanan (Y=285 cm, X=307.5..585 - Drop ceiling mengikuti stepped roof)
+      elements.push({
+        id: 'ceiling-right',
+        type: 'line',
+        category: 'ceiling',
+        name: 'Plafon Gypsum & Rangka Hollow (Modul Kanan)',
+        material: 'Gypsum Board 9 mm + Rangka Hollow Galvalum 40×40 mm',
+        x1: 307.5, y1: 285, x2: 585, y2: 285,
+        width: 3.5,
+        sizeText: '277.5 cm',
+        note: 'Elevasi Plafon Modul Rendah: +2.85 m (Y=285 cm)'
+      });
+
+      // =====================================================================
+      // 8. RANGKA KUDA-KUDA BAJA RINGAN C65 (MODUL KIRI & MODUL KANAN)
+      // =====================================================================
+      // --- MODUL KIRI (Bentang X=15 s.d. 292.5 cm, Bottom Chord Y=320, Puncak Nok Y=500 cm) ---
+      // Dalam potongan melintang, profil kuda-kuda terlihat kemiringan/elevasi atap dari depan ke belakang:
+      // Bottom chord Y=320, Top chord/Nok di Y=500 (Tinggi kuda-kuda = 180 cm di atas ring balok).
+      // Garis kemiringan melintang + Webbing C65:
+      elements.push({
+        id: 'truss-l-bottom',
+        type: 'line',
+        category: 'truss',
+        name: 'Batang Bawah Kuda-Kuda (Bottom Chord) Modul Kiri',
+        material: 'Baja Ringan Profil C65 (Tebal 0.75 mm)',
+        x1: 15, y1: 320, x2: 292.5, y2: 320,
+        width: 3.2,
+        sizeText: '277.5 cm',
+        note: 'Menumpu di Ring Balok +3.20 m (Y=320 cm)'
+      });
+
+      // Garis Puncak Nok Modul Kiri (Y=500 cm)
+      elements.push({
+        id: 'truss-l-nok',
+        type: 'line',
+        category: 'truss',
+        name: 'Garis Puncak Bubungan / Nok Modul Kiri',
+        material: 'Baja Ringan Profil C65 + Nok Spandek Hitam',
+        x1: 15, y1: 500, x2: 292.5, y2: 500,
+        width: 3.5,
+        sizeText: '277.5 cm (Tinggi 180 cm di atas Ring Balok)',
+        note: 'Elevasi Puncak Nok Kiri: +5.00 m (Y=500 cm)'
+      });
+
+      // Bidang Kuda-Kuda C65 & Rangka Webbing Modul Kiri (X=15..292.5, Y=320..500)
+      const webNodesL = [15, 61.25, 107.5, 153.75, 200, 246.25, 292.5];
+      for (let i = 0; i < webNodesL.length; i++) {
+        // Batang tegak (Vertical Web)
+        if (i > 0 && i < webNodesL.length - 1) {
+          elements.push({
+            id: `truss-l-vweb-${i}`,
+            type: 'line',
+            category: 'truss',
+            name: `Batang Tegak Kuda-Kuda C65 Kiri #${i}`,
+            material: 'Baja Ringan Profil C65 (Tebal 0.75 mm)',
+            x1: webNodesL[i], y1: 320, x2: webNodesL[i], y2: 500,
+            width: 2.0,
+            sizeText: '180.0 cm',
+            note: 'Rangka web vertikal kuda-kuda C65'
+          });
+        }
+        // Batang diagonal (Diagonal Web)
+        if (i < webNodesL.length - 1) {
+          const yStart = i % 2 === 0 ? 320 : 500;
+          const yEnd = i % 2 === 0 ? 500 : 320;
+          const len = Math.hypot(webNodesL[i + 1] - webNodesL[i], yEnd - yStart);
+          elements.push({
+            id: `truss-l-dweb-${i}`,
+            type: 'line',
+            category: 'truss',
+            name: `Batang Diagonal Kuda-Kuda C65 Kiri #${i + 1}`,
+            material: 'Baja Ringan Profil C65 (Tebal 0.75 mm)',
+            x1: webNodesL[i], y1: yStart, x2: webNodesL[i + 1], y2: yEnd,
+            width: 1.8,
+            sizeText: `${len.toFixed(1)} cm`,
+            note: 'Pengaku diagonal rangka C65'
+          });
+        }
+      }
+
+      // --- OVERSTEK SAMPING PERTEMUAN ATAP TINGGI KE RENDAH (50 cm: X=307.5 s.d. X=357.5) ---
+      elements.push({
+        id: 'overstek-transisi-rafter',
+        type: 'line',
+        category: 'truss',
+        name: 'Outrigger / Kantilever Overstek Pertemuan Atap (50 cm)',
+        material: 'Baja Ringan Profil C65 (Menjorok 50 cm melewati Firewall Tengah)',
+        x1: 307.5, y1: 495, x2: 357.5, y2: 485,
+        width: 3.0,
+        sizeText: '51.0 cm (Proyeksi Horizontal 50 cm)',
+        note: 'Melindungi pertemuan atap tinggi ke rendah'
+      });
+
+      elements.push({
+        id: 'flashing-transisi',
+        type: 'line',
+        category: 'roofing',
+        name: 'Penutup Atap Overstek & Flashing Seng Galvalum (50 cm)',
+        material: 'Spandek Pasir Hitam + Flashing Galvalum + Listplang GRC 20 cm',
+        x1: 292.5, y1: 505, x2: 357.5, y2: 490,
+        width: 3.8,
+        sizeText: '66.7 cm',
+        note: 'Mencegah tampias pada transisi stepped roof'
+      });
+
+      // Penutup Atap Spandek + Reng R32 Modul Kiri (di atas Nok Y=500..506)
+      elements.push({
+        id: 'roof-cover-left',
+        type: 'line',
+        category: 'roofing',
+        name: 'Penutup Atap Spandek Pasir Hitam & Reng R32 (Modul Kiri)',
+        material: 'Spandek Galvalum Pasir Hitam 0.35 mm + Reng R32 (Jarak 85 cm)',
+        x1: 15, y1: 506, x2: 292.5, y2: 506,
+        width: 4.0,
+        sizeText: '277.5 cm',
+        note: 'Elevasi Puncak Atap +5.06 m'
+      });
+
+      // --- MODUL KANAN (Modul Lebih Rendah: Bentang X=307.5 s.d. 585 cm, Bottom Y=300, Nok Y=460 cm) ---
+      elements.push({
+        id: 'truss-r-bottom',
+        type: 'line',
+        category: 'truss',
+        name: 'Batang Bawah Kuda-Kuda (Bottom Chord) Modul Kanan',
+        material: 'Baja Ringan Profil C65 (Tebal 0.75 mm)',
+        x1: 307.5, y1: 300, x2: 585, y2: 300,
+        width: 3.2,
+        sizeText: '277.5 cm',
+        note: 'Elevasi Bottom Chord Modul Rendah: +3.00 m (Y=300 cm)'
+      });
+
+      elements.push({
+        id: 'truss-r-nok',
+        type: 'line',
+        category: 'truss',
+        name: 'Garis Puncak Bubungan / Nok Modul Kanan (Stepped)',
+        material: 'Baja Ringan Profil C65 + Nok Spandek Hitam',
+        x1: 307.5, y1: 460, x2: 585, y2: 460,
+        width: 3.5,
+        sizeText: '277.5 cm (Lebih rendah 40 cm dari modul kiri)',
+        note: 'Elevasi Puncak Nok Kanan: +4.60 m (Y=460 cm)'
+      });
+
+      const webNodesR = [307.5, 353.75, 400, 446.25, 492.5, 538.75, 585];
+      for (let i = 0; i < webNodesR.length; i++) {
+        if (i > 0 && i < webNodesR.length - 1) {
+          elements.push({
+            id: `truss-r-vweb-${i}`,
+            type: 'line',
+            category: 'truss',
+            name: `Batang Tegak Kuda-Kuda C65 Kanan #${i}`,
+            material: 'Baja Ringan Profil C65 (Tebal 0.75 mm)',
+            x1: webNodesR[i], y1: 300, x2: webNodesR[i], y2: 460,
+            width: 2.0,
+            sizeText: '160.0 cm',
+            note: 'Rangka web vertikal kuda-kuda C65'
+          });
+        }
+        if (i < webNodesR.length - 1) {
+          const yStart = i % 2 === 0 ? 300 : 460;
+          const yEnd = i % 2 === 0 ? 460 : 300;
+          const len = Math.hypot(webNodesR[i + 1] - webNodesR[i], yEnd - yStart);
+          elements.push({
+            id: `truss-r-dweb-${i}`,
+            type: 'line',
+            category: 'truss',
+            name: `Batang Diagonal Kuda-Kuda C65 Kanan #${i + 1}`,
+            material: 'Baja Ringan Profil C65 (Tebal 0.75 mm)',
+            x1: webNodesR[i], y1: yStart, x2: webNodesR[i + 1], y2: yEnd,
+            width: 1.8,
+            sizeText: `${len.toFixed(1)} cm`,
+            note: 'Pengaku diagonal rangka C65'
+          });
+        }
+      }
+
+      elements.push({
+        id: 'roof-cover-right',
+        type: 'line',
+        category: 'roofing',
+        name: 'Penutup Atap Spandek Pasir Hitam & Reng R32 (Modul Kanan)',
+        material: 'Spandek Galvalum Pasir Hitam 0.35 mm + Reng R32 (Jarak 85 cm)',
+        x1: 307.5, y1: 466, x2: 585, y2: 466,
+        width: 4.0,
+        sizeText: '277.5 cm',
+        note: 'Elevasi Puncak Atap Kanan +4.66 m'
+      });
+
+      // =====================================================================
+      // 9. TITIK SUDUT & ELEVASI KRITIS (NODES INTERAKTIF)
+      // =====================================================================
+      const nodes = [
+        { id: 'pt-parapet-l', name: 'Puncak Parapet / Tombak Layar Kiri', material: 'Topi Dinding Parapet + Plester Acian', x: 7.5, y: 520, sizeText: 'Elevasi +5.20 m', note: 'X = 7.5 cm, Y = 520 cm' },
+        { id: 'pt-nok-l', name: 'Titik Puncak Nok Modul Kiri', material: 'Bubungan Spandek + Rangka C65', x: 153.75, y: 500, sizeText: 'Elevasi +5.00 m', note: 'X = 153.75 cm, Y = 500 cm' },
+        { id: 'pt-parapet-m', name: 'Puncak Firewall Tengah (Stepped Roof)', material: 'Topi Dinding Firewall + Flashing', x: 300, y: 520, sizeText: 'Elevasi +5.20 m', note: 'X = 300 cm, Y = 520 cm' },
+        { id: 'pt-overstek-mid', name: 'Ujung Overstek Pertemuan Atap (50 cm)', material: 'Listplang GRC + Flashing Galvalum', x: 357.5, y: 490, sizeText: 'Overstek 50 cm', note: 'X = 357.5 cm, Y = 490 cm' },
+        { id: 'pt-nok-r', name: 'Titik Puncak Nok Modul Kanan', material: 'Bubungan Spandek + Rangka C65', x: 446.25, y: 460, sizeText: 'Elevasi +4.60 m', note: 'X = 446.25 cm, Y = 460 cm' },
+        { id: 'pt-parapet-r', name: 'Puncak Parapet / Tombak Layar Kanan', material: 'Topi Dinding Parapet + Plester Acian', x: 592.5, y: 480, sizeText: 'Elevasi +4.80 m', note: 'X = 592.5 cm, Y = 480 cm' },
+        { id: 'pt-rb-l', name: 'Titik Tumpuan Ring Balok Kiri', material: 'Beton Bertulang 15×20 cm', x: 7.5, y: 320, sizeText: 'Elevasi +3.20 m', note: 'X = 7.5 cm, Y = 320 cm' },
+        { id: 'pt-rb-m', name: 'Titik Tumpuan Ring Balok Tengah', material: 'Beton Bertulang 15×20 cm', x: 300, y: 320, sizeText: 'Elevasi +3.20 m', note: 'X = 300 cm, Y = 320 cm' },
+        { id: 'pt-rb-r', name: 'Titik Tumpuan Ring Balok Kanan', material: 'Beton Bertulang 15×20 cm', x: 592.5, y: 320, sizeText: 'Elevasi +3.20 m', note: 'X = 592.5 cm, Y = 320 cm' },
+        { id: 'pt-floor-0', name: 'Titik Referensi Lantai Utama (±0.00)', material: 'Permukaan Keramik Lantai Utama', x: 300, y: 0, sizeText: 'Elevasi ±0.00 m', note: 'X = 300 cm, Y = 0 cm' },
+        { id: 'pt-fp-l', name: 'Dasar Pondasi Tapak Kiri', material: 'Beton Bertulang 50×50×20 cm', x: 25, y: -100, sizeText: 'Elevasi -1.00 m', note: 'X = 25 cm, Y = -100 cm' },
+        { id: 'pt-fp-m', name: 'Dasar Pondasi Tapak Tengah', material: 'Beton Bertulang 50×50×20 cm', x: 300, y: -100, sizeText: 'Elevasi -1.00 m', note: 'X = 300 cm, Y = -100 cm' },
+        { id: 'pt-fp-r', name: 'Dasar Pondasi Tapak Kanan', material: 'Beton Bertulang 50×50×20 cm', x: 575, y: -100, sizeText: 'Elevasi -1.00 m', note: 'X = 575 cm, Y = -100 cm' }
+      ];
+
+      nodes.forEach(n => {
+        elements.push({
+          id: n.id,
+          type: 'node',
+          category: 'node',
+          name: n.name,
+          material: n.material,
+          x: n.x, y: n.y, r: 5,
+          sizeText: n.sizeText,
+          note: n.note
+        });
+      });
+    }
+
+    function buildLegend() {
+      const container = document.getElementById('legend-container');
+      container.innerHTML = '';
+
+      Object.entries(CATEGORIES).forEach(([key, cfg]) => {
+        const btn = document.createElement('button');
+        btn.className = 'flex items-center gap-1.5 px-2 py-1 rounded-md border border-gray-200 bg-gray-50/80 hover:bg-gray-100 transition cursor-pointer text-[11px] font-medium text-gray-700';
+        btn.title = 'Klik untuk tampil/sembunyikan layer';
+
+        const dot = document.createElement('span');
+        dot.className = 'w-2.5 h-2.5 rounded-xs shrink-0';
+        dot.style.backgroundColor = cfg.color;
+
+        const text = document.createElement('span');
+        text.textContent = cfg.label;
+
+        btn.appendChild(dot);
+        btn.appendChild(text);
+
+        btn.addEventListener('click', () => {
+          if (hiddenCategories.has(key)) {
+            hiddenCategories.delete(key);
+            btn.classList.remove('opacity-40', 'line-through');
+          } else {
+            hiddenCategories.add(key);
+            btn.classList.add('opacity-40', 'line-through');
+          }
+          render();
+        });
+
+        container.appendChild(btn);
+      });
+    }
+
+    function worldToScreen(wx, wy) {
+      return {
+        x: camera.offsetX + wx * camera.scale,
+        y: camera.offsetY - wy * camera.scale
+      };
+    }
+
+    function screenToWorld(sx, sy) {
+      return {
+        x: (sx - camera.offsetX) / camera.scale,
+        y: (camera.offsetY - sy) / camera.scale
+      };
+    }
+
+    function getAdaptiveGridStep() {
+      const pxPerCm = camera.scale;
+      if (pxPerCm < 0.85) return { major: 100, minor: 50 };
+      if (pxPerCm < 2.0) return { major: 100, minor: 20 };
+      if (pxPerCm < 4.5) return { major: 50, minor: 10 };
+      if (pxPerCm < 12.0) return { major: 20, minor: 5 };
+      return { major: 10, minor: 1 };
+    }
+
+    function resetView() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const availW = rect.width - RULER_LEFT - 140;
+      const availH = rect.height - RULER_BOTTOM - 90;
+
+      // Bounding box: X = -60..680 (740 cm), Y = -130..560 (690 cm)
+      const worldW = 760;
+      const worldH = 710;
+
+      camera.scale = Math.max(0.35, Math.min(availW / worldW, availH / worldH));
+      const centerWorldX = 310;
+      const centerWorldY = 215;
+
+      const centerScreenX = RULER_LEFT + (rect.width - RULER_LEFT) / 2;
+      const centerScreenY = (rect.height - RULER_BOTTOM) / 2;
+
+      camera.offsetX = centerScreenX - centerWorldX * camera.scale;
+      camera.offsetY = centerScreenY + centerWorldY * camera.scale;
+      render();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      render();
+    }
+
+    // Pola Arsiran Arsitektural (Beton, Batu Kali, Dinding, Tanah)
+    function drawHatch(el, screenBox) {
+      if (camera.scale < 0.45) return;
+      ctx.save();
+      ctx.beginPath();
+      if (el.type === 'rect') {
+        ctx.rect(screenBox.x, screenBox.y, screenBox.w, screenBox.h);
+      } else if (el.type === 'poly') {
+        el.points.forEach((pt, idx) => {
+          const sp = worldToScreen(pt.x, pt.y);
+          if (idx === 0) ctx.moveTo(sp.x, sp.y);
+          else ctx.lineTo(sp.x, sp.y);
+        });
+        ctx.closePath();
+      }
+      ctx.clip();
+
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.22)';
+      ctx.lineWidth = 0.9;
+
+      if (el.hatch === 'wall') {
+        // Garis miring 45 derajat (arsiran bata/hebel)
+        const step = 9;
+        for (let i = -screenBox.h; i < screenBox.w + screenBox.h; i += step) {
+          ctx.beginPath();
+          ctx.moveTo(screenBox.x + i, screenBox.y + screenBox.h);
+          ctx.lineTo(screenBox.x + i + screenBox.h, screenBox.y);
+          ctx.stroke();
+        }
+      } else if (el.hatch === 'concrete') {
+        // Garis diagonal rapat + titik agregat
+        const step = 12;
+        for (let i = -screenBox.h; i < screenBox.w + screenBox.h; i += step) {
+          ctx.beginPath();
+          ctx.moveTo(screenBox.x + i, screenBox.y + screenBox.h);
+          ctx.lineTo(screenBox.x + i + screenBox.h, screenBox.y);
+          ctx.stroke();
+        }
+      } else if (el.hatch === 'stone') {
+        // Lingkaran batu kali sederhana
+        ctx.strokeStyle = 'rgba(68, 64, 60, 0.35)';
+        const step = 14;
+        for (let gx = screenBox.x + 7; gx < screenBox.x + screenBox.w; gx += step) {
+          for (let gy = screenBox.y + 7; gy < screenBox.y + screenBox.h; gy += step) {
+            ctx.beginPath();
+            ctx.arc(gx, gy, 3.5, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      } else if (el.hatch === 'soil') {
+        // Arsiran tanah berselang-seling
+        ctx.strokeStyle = 'rgba(120, 113, 108, 0.22)';
+        const step = 18;
+        for (let gx = screenBox.x; gx < screenBox.x + screenBox.w; gx += step) {
+          for (let gy = screenBox.y + 8; gy < screenBox.y + screenBox.h; gy += step) {
+            ctx.beginPath();
+            ctx.moveTo(gx, gy);
+            ctx.lineTo(gx + 8, gy + 8);
+            ctx.moveTo(gx + 8, gy);
+            ctx.lineTo(gx + 16, gy - 8);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawElevationAnnotations() {
+      const elevations = [
+        { y: 520, label: '+5.20 m (Puncak Parapet & Firewall)' },
+        { y: 500, label: '+5.00 m (Nok Atap Kiri)' },
+        { y: 480, label: '+4.80 m (Parapet Kanan)' },
+        { y: 460, label: '+4.60 m (Nok Atap Kanan - Stepped)' },
+        { y: 320, label: '+3.20 m (Top Ring Balok)' },
+        { y: 300, label: '+3.00 m (Plafon Kiri / Bottom Chord Kanan)' },
+        { y: 0, label: '±0.00 m (Lantai Utama)' },
+        { y: -20, label: '-0.20 m (Dasar Sloof)' },
+        { y: -80, label: '-0.80 m (Top Footplate)' },
+        { y: -100, label: '-1.00 m (Dasar Pondasi Tapak)' }
+      ];
+
+      ctx.save();
+      const rightAnchorX = worldToScreen(615, 0).x;
+
+      elevations.forEach(ev => {
+        const py = worldToScreen(0, ev.y).y;
+
+        // Garis bantu elevasi tipis ke kanan
+        ctx.beginPath();
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = ev.y === 0 ? '#0F172A' : '#CBD5E1';
+        ctx.lineWidth = ev.y === 0 ? 1.2 : 0.9;
+        ctx.moveTo(worldToScreen(585, 0).x, py);
+        ctx.lineTo(rightAnchorX + 12, py);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Simbol segitiga elevasi
+        ctx.beginPath();
+        ctx.moveTo(rightAnchorX + 12, py);
+        ctx.lineTo(rightAnchorX + 17, py - 4);
+        ctx.lineTo(rightAnchorX + 22, py);
+        ctx.closePath();
+        ctx.fillStyle = ev.y === 0 ? '#0F172A' : '#475569';
+        ctx.fill();
+
+        if (camera.scale >= 0.4) {
+          ctx.font = ev.y === 0 ? '700 10.5px "JetBrains Mono", monospace' : '500 10px "JetBrains Mono", monospace';
+          ctx.fillStyle = ev.y === 0 ? '#0F172A' : '#334155';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(ev.label, rightAnchorX + 26, py);
+        }
+      });
+
+      // Garis Dimensi Horizontal As Bangunan di bawah pondasi (Y = -135)
+      const dimY = worldToScreen(0, -135).y;
+      const x1 = worldToScreen(7.5, 0).x;
+      const x3 = worldToScreen(300, 0).x;
+      const x4 = worldToScreen(592.5, 0).x;
+
+      ctx.strokeStyle = '#64748B';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x1, dimY);
+      ctx.lineTo(x4, dimY);
+      [x1, x3, x4].forEach(xp => {
+        ctx.moveTo(xp, dimY - 5);
+        ctx.lineTo(xp, dimY + 5);
+      });
+      ctx.stroke();
+
+      if (camera.scale >= 0.4) {
+        ctx.font = '600 10.5px Inter, sans-serif';
+        ctx.fillStyle = '#1E293B';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('292.5 cm (As 1 – As 3)', (x1 + x3) / 2, dimY - 4);
+        ctx.fillText('292.5 cm (As 3 – As 4)', (x3 + x4) / 2, dimY - 4);
+
+        ctx.textBaseline = 'top';
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.fillText('AS 1', x1, dimY + 7);
+        ctx.fillText('AS 3', x3, dimY + 7);
+        ctx.fillText('AS 4', x4, dimY + 7);
+      }
+
+      ctx.restore();
+    }
+
+    function render() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      // 1. Background Putih Bersih (#FFFFFF)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+
+      const { major, minor } = getAdaptiveGridStep();
+      document.getElementById('zoom-indicator').textContent = `Grid: ${minor} cm`;
+
+      const topLeftWorld = screenToWorld(RULER_LEFT, 0);
+      const bottomRightWorld = screenToWorld(width, height - RULER_BOTTOM);
+
+      const startX = Math.floor(topLeftWorld.x / minor) * minor;
+      const endX = Math.ceil(bottomRightWorld.x / minor) * minor;
+      const startY = Math.floor(bottomRightWorld.y / minor) * minor;
+      const endY = Math.ceil(topLeftWorld.y / minor) * minor;
+
+      // 2. Clip area kanvas utama
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(RULER_LEFT, 0, width - RULER_LEFT, height - RULER_BOTTOM);
+      ctx.clip();
+
+      // Grid Vertikal (X)
+      for (let x = startX; x <= endX; x += minor) {
+        const sx = worldToScreen(x, 0).x;
+        const isMajor = Math.abs(x % major) < 0.001;
+        const isOrigin = Math.abs(x) < 0.001;
+
+        ctx.beginPath();
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, height - RULER_BOTTOM);
+        ctx.strokeStyle = isOrigin ? '#94A3B8' : isMajor ? '#E5E7EB' : '#F3F4F6';
+        ctx.lineWidth = isOrigin ? 1.4 : isMajor ? 1 : 0.75;
+        ctx.stroke();
+      }
+
+      // Grid Horizontal (Y)
+      for (let y = startY; y <= endY; y += minor) {
+        const sy = worldToScreen(0, y).y;
+        const isMajor = Math.abs(y % major) < 0.001;
+        const isOrigin = Math.abs(y) < 0.001;
+
+        ctx.beginPath();
+        ctx.moveTo(RULER_LEFT, sy);
+        ctx.lineTo(width, sy);
+        ctx.strokeStyle = isOrigin ? '#64748B' : isMajor ? '#E5E7EB' : '#F3F4F6';
+        ctx.lineWidth = isOrigin ? 1.5 : isMajor ? 1 : 0.75;
+        ctx.stroke();
+      }
+
+      // 3. Render Elemen Struktur (Area/Poly -> Garis -> Node)
+      const drawOrder = ['rect', 'poly', 'line', 'node'];
+      drawOrder.forEach(targetType => {
+        elements.forEach(el => {
+          if (el.type !== targetType || hiddenCategories.has(el.category)) return;
+
+          const catCfg = CATEGORIES[el.category];
+          const isHovered = hoveredItem && hoveredItem.id === el.id;
+          const isSelected = selectedItem && selectedItem.id === el.id;
+
+          ctx.save();
+
+          if (el.type === 'rect') {
+            const p1 = worldToScreen(el.x1, el.y2);
+            const p2 = worldToScreen(el.x2, el.y1);
+            const w = p2.x - p1.x;
+            const h = p2.y - p1.y;
+
+            ctx.fillStyle = isSelected
+              ? 'rgba(37, 99, 235, 0.28)'
+              : isHovered
+                ? 'rgba(14, 165, 233, 0.22)'
+                : catCfg.fill;
+            ctx.fillRect(p1.x, p1.y, w, h);
+
+            if (el.hatch) {
+              drawHatch(el, { x: p1.x, y: p1.y, w, h });
+            }
+
+            ctx.strokeStyle = isSelected ? '#1D4ED8' : isHovered ? '#0284C7' : catCfg.color;
+            ctx.lineWidth = isSelected || isHovered ? 2.2 : 1.2;
+            ctx.strokeRect(p1.x, p1.y, w, h);
+
+          } else if (el.type === 'poly') {
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            ctx.beginPath();
+            el.points.forEach((pt, idx) => {
+              const sp = worldToScreen(pt.x, pt.y);
+              minX = Math.min(minX, sp.x);
+              maxX = Math.max(maxX, sp.x);
+              minY = Math.min(minY, sp.y);
+              maxY = Math.max(maxY, sp.y);
+              if (idx === 0) ctx.moveTo(sp.x, sp.y);
+              else ctx.lineTo(sp.x, sp.y);
+            });
+            ctx.closePath();
+
+            ctx.fillStyle = isSelected
+              ? 'rgba(37, 99, 235, 0.28)'
+              : isHovered
+                ? 'rgba(14, 165, 233, 0.22)'
+                : catCfg.fill;
+            ctx.fill();
+
+            if (el.hatch) {
+              drawHatch(el, { x: minX, y: minY, w: maxX - minX, h: maxY - minY });
+            }
+
+            ctx.strokeStyle = isSelected ? '#1D4ED8' : isHovered ? '#0284C7' : catCfg.color;
+            ctx.lineWidth = isSelected || isHovered ? 2.2 : 1.3;
+            ctx.stroke();
+
+          } else if (el.type === 'line') {
+            const p1 = worldToScreen(el.x1, el.y1);
+            const p2 = worldToScreen(el.x2, el.y2);
+
+            if (isSelected || isHovered) {
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = isSelected ? 'rgba(37, 99, 235, 0.32)' : 'rgba(14, 165, 233, 0.32)';
+              ctx.lineWidth = (el.width || 2) + 6;
+              ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = isSelected ? '#1D4ED8' : catCfg.color;
+            ctx.lineWidth = (el.width || 2) + (isHovered || isSelected ? 1.2 : 0);
+            ctx.stroke();
+
+          } else if (el.type === 'node') {
+            const p = worldToScreen(el.x, el.y);
+            const radius = (el.r || 5) + (isHovered || isSelected ? 2.5 : 0);
+
+            if (isSelected || isHovered) {
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, radius + 4.5, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(124, 58, 237, 0.25)';
+              ctx.fill();
+            }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = isSelected ? '#1D4ED8' : catCfg.color;
+            ctx.fill();
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        });
+      });
+
+      // 4. Anotasi Elevasi & Dimensi As Bangunan
+      drawElevationAnnotations();
+
+      // Label Ruang & Modul
+      if (camera.scale >= 0.42) {
+        ctx.save();
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.fillStyle = '#334155';
+        ctx.textAlign = 'center';
+
+        const modL = worldToScreen(153.75, 160);
+        ctx.fillText('MODUL KIRI (ATAP TINGGI)', modL.x, modL.y);
+        ctx.font = '500 10px Inter, sans-serif';
+        ctx.fillStyle = '#64748B';
+        ctx.fillText('Ruang Tamu / Kamar Depan', modL.x, modL.y + 15);
+
+        const modR = worldToScreen(446.25, 160);
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.fillStyle = '#334155';
+        ctx.fillText('MODUL KANAN (ATAP RENDAH / STEPPED)', modR.x, modR.y);
+        ctx.font = '500 10px Inter, sans-serif';
+        ctx.fillStyle = '#64748B';
+        ctx.fillText('Kamar Tidur / Area Samping', modR.x, modR.y + 15);
+        ctx.restore();
+      }
+
+      ctx.restore();
+
+      // 5. Penggaris Pinned (Sumbu Y Kiri & Sumbu X Bawah)
+      drawPinnedRulers(width, height, startX, endX, startY, endY, major, minor);
+    }
+
+    function drawPinnedRulers(width, height, startX, endX, startY, endY, major, minor) {
+      // Penggaris Kiri (Sumbu Y / Elevasi cm)
+      ctx.fillStyle = '#F8FAFC';
+      ctx.fillRect(0, 0, RULER_LEFT, height - RULER_BOTTOM);
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(RULER_LEFT, 0);
+      ctx.lineTo(RULER_LEFT, height - RULER_BOTTOM);
+      ctx.stroke();
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+
+      for (let y = startY; y <= endY; y += minor) {
+        const sy = worldToScreen(0, y).y;
+        if (sy < 0 || sy > height - RULER_BOTTOM) continue;
+
+        const isMajor = Math.abs(y % major) < 0.001;
+        const tickLen = isMajor ? 8 : 4;
+
+        ctx.beginPath();
+        ctx.moveTo(RULER_LEFT - tickLen, sy);
+        ctx.lineTo(RULER_LEFT, sy);
+        ctx.strokeStyle = isMajor ? '#64748B' : '#CBD5E1';
+        ctx.stroke();
+
+        if (isMajor) {
+          const val = Math.round(y);
+          ctx.fillText(val > 0 ? `+${val}` : val.toString(), RULER_LEFT - 10, sy);
+        }
+      }
+
+      // Penggaris Bawah (Sumbu X / Lebar Bangunan cm)
+      ctx.fillStyle = '#F8FAFC';
+      ctx.fillRect(RULER_LEFT, height - RULER_BOTTOM, width - RULER_LEFT, RULER_BOTTOM);
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.beginPath();
+      ctx.moveTo(RULER_LEFT, height - RULER_BOTTOM);
+      ctx.lineTo(width, height - RULER_BOTTOM);
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      for (let x = startX; x <= endX; x += minor) {
+        const sx = worldToScreen(x, 0).x;
+        if (sx < RULER_LEFT || sx > width) continue;
+
+        const isMajor = Math.abs(x % major) < 0.001;
+        const tickLen = isMajor ? 7 : 4;
+
+        ctx.beginPath();
+        ctx.moveTo(sx, height - RULER_BOTTOM);
+        ctx.lineTo(sx, height - RULER_BOTTOM + tickLen);
+        ctx.strokeStyle = isMajor ? '#64748B' : '#CBD5E1';
+        ctx.stroke();
+
+        if (isMajor) {
+          ctx.fillText(Math.round(x).toString(), sx, height - RULER_BOTTOM + 9);
+        }
+      }
+
+      // Kotak Sudut Satuan (cm)
+      ctx.fillStyle = '#E2E8F0';
+      ctx.fillRect(0, height - RULER_BOTTOM, RULER_LEFT, RULER_BOTTOM);
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.strokeRect(0, height - RULER_BOTTOM, RULER_LEFT, RULER_BOTTOM);
+
+      ctx.fillStyle = '#0F172A';
+      ctx.font = '700 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('cm', RULER_LEFT / 2, height - RULER_BOTTOM / 2);
+    }
+
+    // Hit-Testing (Node -> Line -> Polygon/Rect)
+    function distToSegment(px, py, x1, y1, x2, y2) {
+      const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+      if (l2 === 0) return Math.hypot(px - x1, py - y1);
+      let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+    }
+
+    function pointInPolygon(px, py, pts) {
+      let inside = false;
+      for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        const xi = pts[i].x, yi = pts[i].y;
+        const xj = pts[j].x, yj = pts[j].y;
+        const intersect = ((yi > py) !== (yj > py)) &&
+          (px < (xj - xi) * (py - yi) / ((yj - yi) || 1e-9) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function hitTest(screenX, screenY) {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      if (screenX < RULER_LEFT || screenY > rect.height - RULER_BOTTOM) return null;
+
+      // 1. Cek Node
+      for (let i = elements.length - 1; i >= 0; i--) {
+        const el = elements[i];
+        if (el.type !== 'node' || hiddenCategories.has(el.category)) continue;
+        const p = worldToScreen(el.x, el.y);
+        if (Math.hypot(screenX - p.x, screenY - p.y) <= (el.r || 5) + 5) {
+          return el;
+        }
+      }
+
+      // 2. Cek Garis (Atap, Plafon, Rangka Baja Ringan C65)
+      for (let i = elements.length - 1; i >= 0; i--) {
+        const el = elements[i];
+        if (el.type !== 'line' || hiddenCategories.has(el.category)) continue;
+        const p1 = worldToScreen(el.x1, el.y1);
+        const p2 = worldToScreen(el.x2, el.y2);
+        if (distToSegment(screenX, screenY, p1.x, p1.y, p2.x, p2.y) <= 6) {
+          return el;
+        }
+      }
+
+      // 3. Cek Polygon & Persegi (Beton, Dinding, Batu Kali, Tanah - dari atas ke bawah)
+      const wPt = screenToWorld(screenX, screenY);
+      for (let i = elements.length - 1; i >= 0; i--) {
+        const el = elements[i];
+        if (hiddenCategories.has(el.category)) continue;
+        if (el.type === 'poly' && pointInPolygon(wPt.x, wPt.y, el.points)) {
+          return el;
+        }
+        if (el.type === 'rect') {
+          if (wPt.x >= el.x1 && wPt.x <= el.x2 && wPt.y >= el.y1 && wPt.y <= el.y2) {
+            return el;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function showDetailPanel(el) {
+      const panel = document.getElementById('detail-panel');
+      if (!el) {
+        panel.classList.add('hidden');
+        return;
+      }
+
+      const catCfg = CATEGORIES[el.category];
+      const badge = document.getElementById('detail-category');
+      badge.textContent = catCfg.label;
+      badge.style.backgroundColor = `${catCfg.color}18`;
+      badge.style.color = catCfg.color;
+
+      document.getElementById('detail-title').textContent = el.name;
+      document.getElementById('detail-material').textContent = el.material;
+      document.getElementById('detail-size').textContent = el.sizeText;
+      document.getElementById('detail-note').textContent = el.note || '-';
+
+      let coordText = '';
+      if (el.type === 'node') {
+        coordText = `Titik Sudut : (X = ${el.x} cm, Y = ${el.y} cm)`;
+      } else if (el.type === 'line') {
+        coordText = `Awal  : (X = ${el.x1} cm, Y = ${el.y1} cm)\nAkhir : (X = ${el.x2} cm, Y = ${el.y2} cm)`;
+      } else if (el.type === 'rect') {
+        coordText = `Kiri-Bawah : (X = ${el.x1} cm, Y = ${el.y1} cm)\nKanan-Atas : (X = ${el.x2} cm, Y = ${el.y2} cm)`;
+      } else if (el.type === 'poly') {
+        coordText = el.points.map((p, idx) => `Titik ${idx + 1} : (${p.x}, ${p.y}) cm`).join('\n');
+      }
+      document.getElementById('detail-coords').textContent = coordText;
+
+      panel.classList.remove('hidden');
+    }
+
+    // Interaksi Mouse & Touch
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const worldBefore = screenToWorld(mouseX, mouseY);
+      const zoomFactor = e.deltaY < 0 ? 1.14 : 1 / 1.14;
+      camera.scale = Math.max(0.22, Math.min(25, camera.scale * zoomFactor));
+
+      camera.offsetX = mouseX - worldBefore.x * camera.scale;
+      camera.offsetY = mouseY + worldBefore.y * camera.scale;
+      render();
+    }, { passive: false });
+
+    let pointerDownPos = { x: 0, y: 0 };
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      isDragging = true;
+      pointerDownPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      dragStart = { x: e.clientX - camera.offsetX, y: e.clientY - camera.offsetY };
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const wPt = screenToWorld(x, y);
+      document.getElementById('cursor-x').textContent = wPt.x.toFixed(1);
+      document.getElementById('cursor-y').textContent = (wPt.y >= 0 ? '+' : '') + wPt.y.toFixed(1);
+
+      if (isDragging) {
+        camera.offsetX = e.clientX - dragStart.x;
+        camera.offsetY = e.clientY - dragStart.y;
+        render();
+        return;
+      }
+
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        const hit = hitTest(x, y);
+        if (hit !== hoveredItem) {
+          hoveredItem = hit;
+          canvas.style.cursor = hit ? 'pointer' : 'grab';
+          render();
+        }
+      }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (Math.hypot(x - pointerDownPos.x, y - pointerDownPos.y) < 4) {
+        const hit = hitTest(x, y);
+        selectedItem = hit;
+        showDetailPanel(hit);
+        render();
+      }
+    });
+
+    // Touch Events
+    let lastTouchDist = null;
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        const rect = canvas.getBoundingClientRect();
+        const t = e.touches[0];
+        isDragging = true;
+        pointerDownPos = { x: t.clientX - rect.left, y: t.clientY - rect.top };
+        dragStart = { x: t.clientX - camera.offsetX, y: t.clientY - camera.offsetY };
+      } else if (e.touches.length === 2) {
+        isDragging = false;
+        lastTouchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (e.touches.length === 1 && isDragging) {
+        const t = e.touches[0];
+        camera.offsetX = t.clientX - dragStart.x;
+        camera.offsetY = t.clientY - dragStart.y;
+        render();
+      } else if (e.touches.length === 2 && lastTouchDist) {
+        const rect = canvas.getBoundingClientRect();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+
+        const worldBefore = screenToWorld(midX, midY);
+        camera.scale = Math.max(0.22, Math.min(25, camera.scale * (dist / lastTouchDist)));
+        camera.offsetX = midX - worldBefore.x * camera.scale;
+        camera.offsetY = midY + worldBefore.y * camera.scale;
+        lastTouchDist = dist;
+        render();
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      if (isDragging && e.changedTouches.length === 1) {
+        const rect = canvas.getBoundingClientRect();
+        const t = e.changedTouches[0];
+        const x = t.clientX - rect.left;
+        const y = t.clientY - rect.top;
+        if (Math.hypot(x - pointerDownPos.x, y - pointerDownPos.y) < 8) {
+          const hit = hitTest(x, y);
+          selectedItem = hit;
+          showDetailPanel(hit);
+          render();
+        }
+      }
+      isDragging = false;
+      lastTouchDist = null;
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      selectedItem = null;
+      showDetailPanel(null);
+      resetView();
+    });
+
+    document.getElementById('btn-close-detail').addEventListener('click', () => {
+      selectedItem = null;
+      showDetailPanel(null);
+      render();
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    window.onload = function () {
+      buildSectionModel();
+      buildLegend();
+      resizeCanvas();
+      resetView();
+    };
+  </script>
+</body>
+</html>
